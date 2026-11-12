@@ -32,5 +32,13 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Bibliotecas mudam pouco: num pacote separado, ficam em cache entre as atualizações do app
+        manualChunks: { react: ['react', 'react-dom', 'react-router-dom'], supabase: ['@supabase/supabase-js'] },
+      },
+    },
+  },
   test: { environment: 'jsdom', globals: false },
 });
