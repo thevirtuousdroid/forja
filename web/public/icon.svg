@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="ember" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB36B"/>
+      <stop offset="1" stop-color="#FF5A1F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.5">
+      <stop offset="0" stop-color="#FF7A3D" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#FF7A3D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0B0D12"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- chama -->
+  <path d="M256 92c22 40 64 62 64 112 0 36-28 62-64 62s-64-26-64-62c0-26 14-42 28-56 4 22 14 34 28 38-6-34 0-62 8-94z" fill="url(#ember)"/>
+  <!-- bigorna -->
+  <path d="M120 300h272c0 26-22 44-56 48l-12 2v26h40c10 0 18 8 18 18v14H130v-14c0-10 8-18 18-18h40v-26l-30-6c-22-4-38-22-38-44z" fill="#E8EAF0"/>
+  <path d="M120 300h272" stroke="#FF7A3D" stroke-width="6" stroke-linecap="round"/>
+</svg>
