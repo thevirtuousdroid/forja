@@ -25,4 +25,7 @@ for f in "$ROOT"/migrations/*.sql; do
   echo "→ $(basename "$f")"
   $PSQL -f "$f"
 done
-$PSQL -f "$HERE/10_engine_test.sql"
+for t in "$HERE"/[0-9][0-9]_*_test.sql; do
+  echo "→ $(basename "$t")"
+  $PSQL -f "$t"
+done

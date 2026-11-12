@@ -85,7 +85,13 @@ export function Difficulty({ value }: { value: number }) {
   );
 }
 
-export function MissionItem({ mission, busy, onToggle }: { mission: Mission; busy?: boolean; onToggle: (m: Mission) => void }) {
+export function MissionItem({ mission, busy, onToggle, multiplier = 1, bossHit = false }: {
+  mission: Mission; busy?: boolean; onToggle: (m: Mission) => void;
+  /** Multiplicador de XP do modo de dificuldade (só exibição; o servidor calcula). */
+  multiplier?: number;
+  /** Esta missão daria o golpe de hoje no chefe ativo. */
+  bossHit?: boolean;
+}) {
   const done = mission.status === 'concluida';
   const expired = mission.status === 'expirada';
   return (
@@ -97,7 +103,8 @@ export function MissionItem({ mission, busy, onToggle }: { mission: Mission; bus
           <span className="faint">·</span>
           <span>{DIMENSIONS[mission.dimension].short}</span>
           {mission.kind !== 'diaria' && <span className="pill accent">{KIND_LABEL[mission.kind]}</span>}
-          <span className="num faint">+{mission.xp_reward} XP</span>
+          <span className="num faint">+{done ? mission.xp_reward : Math.max(1, Math.round(mission.xp_reward * multiplier))} XP</span>
+          {bossHit && !done && <span className="pill" style={{ color: 'var(--hp)' }}>⚔ golpe no chefe</span>}
         </div>
       </NavLink>
       <button

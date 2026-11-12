@@ -1,28 +1,30 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabase } from './supabase';
-import { BACKEND, api, friendlyError, localApi } from './api';
-import type { CharacterStats, Habit, Mission, Profile, TodayInfo } from './types';
+import { api, friendlyError, type Catalogs } from './api';
+import type { CharacterStats, GameEvent, Habit, Mission, Profile, TodayInfo } from './types';
 import { useFeedback } from '../components/Feedback';
 import { browserTimezone } from './dates';
+import { inName } from './rpg';
 
 interface AppData {
-  /** Pessoa identificada: sessão do Supabase, ou dados pessoais carregados na versão individual. */
   signedIn: boolean;
   authReady: boolean;
   userEmail: string | null;
-  /** Onde os dados ficam na versão individual. */
-  storage: 'nuvem' | 'aparelho' | null;
   profile: Profile | null;
   stats: CharacterStats | null;
   today: TodayInfo | null;
   missions: Mission[];
   habits: Habit[];
+  catalogs: Catalogs | null;
+  /** Recompensas e avisos ainda não mostrados (conquistas, itens, nível, chefes). */
+  events: GameEvent[];
   loading: boolean;
   error: string | null;
   busy: Set<string>;
   refresh: () => Promise<void>;
   complete: (m: Mission) => Promise<void>;
   undo: (m: Mission) => Promise<void>;
+  dismissEvents: (ids: number[]) => void;
 }
 
 const Ctx = createContext<AppData | null>(null);
@@ -33,31 +35,25 @@ export function useApp() {
 }
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const { toast, levelUp } = useFeedback();
+  const { toast } = useFeedback();
   const [signedIn, setSignedIn] = useState(false);
   const [userKey, setUserKey] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [storage, setStorage] = useState<'nuvem' | 'aparelho' | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<CharacterStats | null>(null);
   const [today, setToday] = useState<TodayInfo | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [catalogs, setCatalogs] = useState<Catalogs | null>(null);
+  const [events, setEvents] = useState<GameEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const tzSynced = useRef(false);
+  const dismissed = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    if (BACKEND === 'local') {
-      localApi.onSaveError((e) => toast(friendlyError(e), 'error'));
-      localApi.init()
-        .then((r) => { setStorage(r.storage); setSignedIn(true); setUserKey('local'); })
-        .catch((e) => setError(friendlyError(e)))
-        .finally(() => setAuthReady(true));
-      return;
-    }
     supabase.auth.getSession().then(({ data }) => {
       setSignedIn(!!data.session); setUserKey(data.session?.user.id ?? null); setUserEmail(data.session?.user.email ?? null);
       setAuthReady(true);
@@ -66,7 +62,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setSignedIn(!!s); setUserKey(s?.user.id ?? null); setUserEmail(s?.user.email ?? null);
     });
     return () => sub.subscription.unsubscribe();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadEvents = useCallback(async () => {
+    try {
+      const evs = await api.pendingEvents();
+      setEvents(evs.filter((e) => !dismissed.current.has(e.id)));
+    } catch {
+      /* Avisos são extras: se falharem, o resto do app segue normal */
+    }
+  }, []);
 
   const refresh = useCallback(async () => {
     setError(null);
@@ -80,29 +85,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         prof = await api.profile();
       }
       tzSynced.current = true;
-      setProfile(prof);
-      if (!prof.onboarding_done) { setStats(await api.stats()); return; }
+      if (!prof.onboarding_done) { setProfile(prof); setStats(await api.stats()); return; }
       const t = await api.ensureToday();
-      const [s, ms, hs] = await Promise.all([api.stats(), api.missionsFor(t.today), api.habits()]);
-      setToday(t); setStats(s); setMissions(ms); setHabits(hs);
+      // ensure_today pode liberar itens e mudar o avatar: relê o perfil depois dele
+      const [p2, s, ms, hs] = await Promise.all([api.profile(), api.stats(), api.missionsFor(t.today), api.habits()]);
+      setProfile(p2); setToday(t); setStats(s); setMissions(ms); setHabits(hs);
+      void loadEvents();
+      api.catalogs().then(setCatalogs).catch(() => {});
     } catch (e) {
       setError(friendlyError(e));
     }
-  }, []);
+  }, [loadEvents]);
 
   useEffect(() => {
-    if (!signedIn) { setProfile(null); setStats(null); setToday(null); setMissions([]); setHabits([]); return; }
+    if (!signedIn) {
+      setProfile(null); setStats(null); setToday(null); setMissions([]); setHabits([]); setEvents([]);
+      return;
+    }
     setLoading(true);
     refresh().finally(() => setLoading(false));
   }, [userKey, signedIn, refresh]);
 
   // Ao voltar para o app (ex.: abriu no dia seguinte), recarrega
   useEffect(() => {
-    const onVisible = async () => {
-      if (document.visibilityState !== 'visible' || !signedIn) return;
-      if (BACKEND === 'local') await localApi.reload().catch(() => {});
-      refresh();
-    };
+    const onVisible = () => { if (document.visibilityState === 'visible' && signedIn) refresh(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [signedIn, refresh]);
@@ -133,9 +139,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const r = await api.completeMission(m.id);
       if (!r.ja_concluida) {
         const bonus = (r.bonus ?? []).reduce((n, b) => n + b.xp, 0);
-        const extra = r.bonus?.some((b) => b.tipo === 'retorno') ? ' · bônus de retorno!' : r.bonus?.length ? ' · meta do dia batida!' : '';
-        toast(`+${(r.xp ?? 0) + bonus} XP${extra}`, 'xp', { label: 'Desfazer', run: () => undo({ ...m, status: 'concluida' }) });
-        if ((r.nivel ?? 0) > (r.nivel_antes ?? 0)) levelUp(r.nivel!);
+        const parts = [`+${(r.xp ?? 0) + bonus} XP`];
+        if (r.bonus?.some((b) => b.tipo === 'retorno')) parts.push('bônus de retorno');
+        else if (r.bonus?.length) parts.push('meta do dia batida');
+        const c = r.chefe;
+        if (c && c.status === 'ativo' && c.effective > c.before) parts.push(`golpe ${inName(c.name)} (${c.effective}/${c.hp})`);
+        toast(parts.join(' · '), 'xp', { label: 'Desfazer', run: () => undo({ ...m, status: 'concluida' }) });
       }
     } catch (e) {
       toast(friendlyError(e), 'error');
@@ -143,10 +152,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setBusyFor(m.id, false);
       await refresh();
     }
-  }, [busy, refresh, toast, levelUp, undo]);
+  }, [busy, refresh, toast, undo]);
+
+  const dismissEvents = useCallback((ids: number[]) => {
+    ids.forEach((id) => dismissed.current.add(id));
+    setEvents((evs) => evs.filter((e) => !ids.includes(e.id)));
+    api.markEventsSeen(ids).catch(() => {});
+  }, []);
 
   return (
-    <Ctx.Provider value={{ signedIn, authReady, userEmail, storage, profile, stats, today, missions, habits, loading, error, busy, refresh, complete, undo }}>
+    <Ctx.Provider value={{
+      signedIn, authReady, userEmail, profile, stats, today, missions, habits, catalogs, events,
+      loading, error, busy, refresh, complete, undo, dismissEvents,
+    }}>
       {children}
     </Ctx.Provider>
   );

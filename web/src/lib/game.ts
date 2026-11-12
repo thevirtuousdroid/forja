@@ -88,7 +88,6 @@ export function emblemTier(level: number): 0 | 1 | 2 | 3 | 4 {
   return 0;
 }
 
-export const TIER_TITLES = ['Aprendiz da Forja', 'Ferreiro Iniciante', 'Artesão do Aço', 'Mestre Forjador', 'Lenda da Bigorna'];
 
 /** Perfil de referência (não é diagnóstico): arquétipo pela dimensão mais forte. */
 const ARCHETYPES: Record<Dimension, string> = {

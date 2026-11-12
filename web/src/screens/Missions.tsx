@@ -5,13 +5,16 @@ import { formatDay } from '../lib/dates';
 import { Empty, ErrorState, MissionItem, Skeleton } from '../components/ui';
 import { IconPlus } from '../components/Icons';
 import type { Mission } from '../lib/types';
+import { modeDef } from '../lib/rpg';
+import { hitsBoss } from './Home';
 
 export function MissionsScreen() {
-  const { today, missions, busy, complete, undo, error, refresh, loading } = useApp();
+  const { today, missions, busy, complete, undo, error, refresh, loading, profile } = useApp();
   if (error && !today) return <div className="screen"><ErrorState message={error} onRetry={refresh} /></div>;
   if (!today) return <div className="screen"><Skeleton height={40} /><Skeleton /><Skeleton /><Skeleton /></div>;
 
   const toggle = (m: Mission) => (m.status === 'concluida' ? undo(m) : complete(m));
+  const mult = modeDef(today.mode ?? profile?.mode ?? 'normal').multiplier;
   const weekly = missions.filter((m) => m.kind === 'semanal' || m.kind === 'especial');
   const surprise = missions.filter((m) => m.kind === 'surpresa');
   const regular = missions.filter((m) => m.kind === 'diaria' || m.kind === 'personalizada');
@@ -19,7 +22,7 @@ export function MissionsScreen() {
 
   const list = (ms: Mission[]) => (
     <div className="stack tight">
-      {ms.map((m) => <MissionItem key={m.id} mission={m} busy={busy.has(m.id)} onToggle={toggle} />)}
+      {ms.map((m) => <MissionItem key={m.id} mission={m} busy={busy.has(m.id)} onToggle={toggle} multiplier={mult} bossHit={hitsBoss(today.boss, m)} />)}
     </div>
   );
 
@@ -56,7 +59,7 @@ export function MissionsScreen() {
           <span className="tiny faint">Desta semana</span>
           {weekly.map((m) => (
             <div key={m.id} className="stack tight">
-              <MissionItem mission={m} busy={busy.has(m.id)} onToggle={toggle} />
+              <MissionItem mission={m} busy={busy.has(m.id)} onToggle={toggle} multiplier={mult} bossHit={hitsBoss(today.boss, m)} />
               {m.status === 'pendente' && <span className="small faint" style={{ paddingLeft: 12 }}>Vale até {formatDay(m.due_date, { weekday: 'long' })}</span>}
             </div>
           ))}

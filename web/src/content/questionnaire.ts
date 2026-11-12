@@ -70,7 +70,7 @@ export const STEPS: Step[] = [
       {
         key: 'sleep_quality', title: 'Como você acorda na maioria dos dias?',
         options: [
-          { label: 'Exausto', value: 0 }, { label: 'Cansado', value: 1 }, { label: 'Razoável', value: 2 }, { label: 'Descansado', value: 3 },
+          { label: 'Sem energia', value: 0 }, { label: 'Com pouca energia', value: 1 }, { label: 'Razoável', value: 2 }, { label: 'Com energia', value: 3 },
         ],
       },
       {
@@ -92,7 +92,7 @@ export const STEPS: Step[] = [
     intro: 'Como você tem se sentido nas últimas semanas.',
     questions: [
       {
-        key: 'stress', title: 'Com que frequência você se sente sobrecarregado?',
+        key: 'stress', title: 'Com que frequência a rotina parece pesada demais?',
         options: [
           { label: 'Quase sempre', value: 0 }, { label: 'Com frequência', value: 1 }, { label: 'Às vezes', value: 2 }, { label: 'Raramente', value: 3 },
         ],
@@ -190,7 +190,7 @@ export const STEPS: Step[] = [
         ],
       },
       {
-        key: 'discipline', title: 'De 0 a 3, quão disciplinado você se considera hoje?',
+        key: 'discipline', title: 'De 0 a 3, como você avalia a sua disciplina hoje?',
         options: [
           { label: '0 · Começo do zero', value: 0 }, { label: '1 · Pouco', value: 1 }, { label: '2 · Razoável', value: 2 }, { label: '3 · Bastante', value: 3 },
         ],

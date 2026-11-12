@@ -2,61 +2,55 @@
 
 _Atualizado em 12/11/2026._
 
-## Etapa 1 · Planejamento ✅
+| Etapa | Situação |
+|---|---|
+| 1 · Planejamento | ✅ `docs/PLANEJAMENTO.md` |
+| 2 · MVP | ✅ no ar em forja-kappa-wheat.vercel.app |
+| 3 · Gamificação | ✅ pronta e testada; entra no ar depois que o banco receber a migração `0004_rpg.sql` |
+| 4 · Sistemas avançados | próxima |
+| 5 · Premium | |
+| 6 · Testes com amigos e lançamento | |
 
-`docs/PLANEJAMENTO.md`: arquitetura, banco, identidade visual, navegação, regras de negócio (fórmula de XP, curva de níveis, atributos, progressão, sequências e escudos, programa de 66 dias) e modelo gratuito/premium adaptado para uso entre amigos.
-
-## Etapa 2 · MVP ✅ (pronto para uso)
+## Etapa 3 · Gamificação
 
 ### Implementado
 
 | Área | O que funciona |
 |---|---|
-| Conta | Cadastro, login, confirmação por e-mail (opcional), recuperação de senha, sair. |
-| Onboarding | 3 telas de boas-vindas; questionário em 8 etapas curtas, com rascunho salvo no aparelho. |
-| Avaliação | Pontuação por dimensão, perfil de referência (sem diagnóstico), 3 prioridades, atributos iniciais. |
-| Plano de 66 dias | Gerado no servidor a partir das prioridades e do tempo disponível (60% no início); hábitos novos entram nos dias 8, 22 e 34; água e sono entram quando as respostas indicam. |
-| Missões | Diárias (dos hábitos), semanais (revisão da semana), especiais (fase 3+), surpresa (fase 2+, opcionais), personalizadas (avulsas ou recorrentes). Todas com os campos do item 5 do briefing. |
-| Progressão | Meta sobe um passo quando o hábito é cumprido em 5 dos 7 dias anteriores; nunca passa do teto; redução só pelo usuário. |
-| XP e níveis | Calculados e concedidos **somente no servidor**; histórico imutável (`xp_ledger`); proteção contra conclusão duplicada; retorno decrescente para missões personalizadas e excesso diário; desfazer no mesmo dia. |
-| Atributos | Disciplina, Foco, Vitalidade, Conhecimento e Determinação, com níveis próprios. |
-| Sequências | Dias completos/parciais/em branco/protegidos, sequência atual e melhor, consistência, escudos, marcos (7 a 132), bônus de meta diária e de retorno. Perder a sequência não apaga nada. |
-| Telas | Splash, login/cadastro, boas-vindas, questionário, resultado, início, missões, detalhe (com ajuste de meta e pausa), nova missão, jornada (calendário + fases), personagem (emblema que evolui, atributos, histórico), perfil (nome, meta diária, fuso, cor de destaque, hábitos pausados, instalação no iPhone). |
-| PWA | Ícone, manifesto, service worker, instalável no iPhone e Android, layout com áreas seguras do iPhone. |
-| Premium | Campo `plan` no servidor; limite gratuito de hábitos personalizados aplicado nas funções; `admin_set_plan` para liberar. |
+| Personagem | Avatar em SVG próprio, com pele, cabelo, barba e roupa personalizáveis (editor com prévia). Aparência inicial sorteada para cada pessoa. |
+| Equipamentos | 27 itens em 6 espaços (cabeça, armadura, capa, ferramenta, amuleto, moldura), desenhados no avatar. Liberados por nível, conquista ou chefe. Só visuais, sem XP extra. A moldura evolui sozinha com o nível. |
+| Inventário | Todos os itens com prévia no próprio avatar, raridade e como desbloquear. Equipar e tirar. |
+| Títulos | 19 títulos em linguagem neutra; escolha manual ou automática pelo nível. |
+| Atributos | Gráfico em pentágono, nível e progresso de cada atributo, XP dos últimos 14 dias e quais hábitos alimentam cada um. |
+| Conquistas | 44 conquistas em 8 categorias, com raridade, progresso, XP e recompensas; uma oculta. |
+| Chefes | 7 chefes com arte, história e dificuldade próprias. Batalha com barra de vida, rachaduras que aparecem conforme o dano, linha do tempo dos golpes e missões que contam hoje (dá para concluir direto da tela do chefe). Vitória, revanche, recuo e desistência. |
+| Modos | Normal, Desafio e Extremo, com regras escritas, requisitos, aceite obrigatório, XP maior, escudos e metas diferentes, cura do chefe, travas do Extremo, rebaixamento automático e espera de 7 dias. |
+| Avisos | Nível, conquista, item, vitória, recuo e rebaixamento aparecem uma vez, com animação; itens podem ser equipados direto do aviso. |
+| Integração | Início com avatar, título, modo e chefe ativo; missões mostram o XP do modo e quais dão golpe no chefe; jornada com atalhos e dias marcados por modo; perfil com modo e aparência. |
+| Histórico de regras | Mudar o modo ou a meta mínima vale a partir de hoje; o passado não é reescrito. |
 
 ### Testado
 
-- **Banco (Postgres local):** 8 grupos de testes, todos passando, incluindo uma simulação de 30 dias (nível 7, 90% de consistência, escudo protegendo um dia, sequência zerando quando os escudos acabam, metas subindo com teto, missões vencidas expirando).
-- **App:** 12 testes unitários (curva de níveis igual à do banco, questionário cobre tudo o que o servidor exige, mensagens de erro, componente de missão); verificação de tipos; build de produção.
-- **Ponta a ponta:** o app rodou num navegador (tamanho de iPhone) contra o banco de verdade, com as permissões reais: boas-vindas → questionário → resultado → início → concluir missões (XP, bônus) → detalhe → jornada → personagem → perfil.
+- **Banco:** 8 grupos de testes novos (itens e avatar, conquistas e avisos, ajuste consciente, itens por nível, chefes, leitura protegida, modos, travas do Extremo) e os 8 do MVP, todos passando.
+- **Atualização:** a migração foi aplicada num banco com uma pessoa já usando o app; ela ganhou na hora a conquista que já tinha alcançado e os itens iniciais. A migração também foi rodada duas vezes seguidas sem erro.
+- **App:** 27 testes (todos os equipamentos desenham algo diferente, ids não colidem entre avatares, cada chefe tem arte própria, rachaduras por dano, fila de avisos, textos de bloqueio, artigos no meio da frase), verificação de tipos e build.
+- **Ponta a ponta:** no navegador, em tamanho de iPhone, contra o banco local com as permissões reais: questionário → aparência salva → primeira conquista → inventário, títulos, atributos e conquistas → chefes bloqueados e liberados → batalha contra a Névoa → golpe pela tela do chefe → vitória com 6 avisos em sequência → modo Desafio ativado.
 
-### Limitações conhecidas
+### Decisões
 
-- A autenticação real (e-mail e senha) depende do Supabase e não foi exercitada localmente; a sessão foi simulada no teste ponta a ponta.
-- Notificações e lembretes ainda não existem (Etapa 4).
-- A reavaliação do dia 66 está prevista, mas a tela ainda não oferece refazer o questionário.
+- **Versão individual retirada do código.** Manter dois motores de regras dobraria o trabalho de cada etapa. A página publicada continua como estava, e o código fica no histórico do Git (commit `49bf4ba`).
+- **Tudo da Etapa 3 liberado para todos por enquanto.** A divisão gratuito × premium entra na Etapa 5, com uma tabela no servidor para o administrador escolher o que é pago.
+- **Linguagem neutra** nos títulos e em perguntas do questionário que tinham adjetivos no masculino.
 
-## Versão individual ✅ (publicada)
+### Pendente
 
-Para começar sem Supabase nem Vercel, o app ganhou uma versão individual:
-
-- **Sem login.** Abre direto no questionário (agora pede o nome na primeira etapa).
-- **Regras do jogo no próprio app** (`web/src/engine/`), traduzidas do banco. Os testes comparam as duas versões: 3.250 combinações de XP, a curva de níveis e a mesma simulação de 30 dias dão exatamente os mesmos números (3.125 XP, nível 7, sequência 18, consistência 90%).
-- **Dados no espaço privado da página no claude.ai**, divididos em um documento de perfil e um por mês. Só o que mudou é gravado. Fora do claude.ai, usa o navegador.
-- **Backup:** exportar e restaurar em Perfil → Seus dados.
-- **Publicada** como página no claude.ai, em arquivo único (`npm run build:pagina`).
-
-Testado: 24 testes do app (motor, armazenamento, questionário, componentes), testes do banco, e o fluxo completo no navegador em tamanho de iPhone, incluindo recarregar a página e encontrar os dados.
-Não testado ao vivo: a gravação no espaço privado do claude.ai (só roda dentro da página publicada); o caminho com armazenamento do navegador, que usa o mesmo código de gravação, foi testado.
-
-A versão com servidor continua no projeto, pronta para quando for usar com amigos. Um backup exportado da versão individual pode servir de base para migrar.
+- Notificações e lembretes (Etapa 4).
+- Reavaliação no dia 66 (a tela ainda não oferece refazer o questionário).
 
 ## Próximas etapas
 
 | Etapa | Escopo |
 |---|---|
-| 3 · Gamificação | Avatar personalizável com equipamentos, inventário, conquistas, títulos, chefes ligados a missões reais, modos Desafio e Extremo. |
 | 4 · Sistemas avançados | Amigos, grupos, ranking e temporadas entre amigos, ferramentas (foco, água, sono, leitura, meditação, diário), assistente de IA, relatório semanal, notificações. |
-| 5 · Premium | Tela de planos e gestão de quem é premium. |
+| 5 · Premium | Tabela de recursos pagos no servidor, tela de planos e gestão de quem é premium. |
 | 6 · Lançamento | Teste com amigos, ajustes de usabilidade e desempenho. |

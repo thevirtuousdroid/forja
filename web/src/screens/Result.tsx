@@ -4,7 +4,8 @@ import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Assessment } from '../lib/types';
 import { ATTRIBUTES, ATTRIBUTE_KEYS, DIMENSIONS, DIMENSION_KEYS, attributeLevel, formatTarget, phaseForDay, phaseInfo, referenceProfile } from '../lib/game';
-import { Emblem } from '../components/Emblem';
+import { Avatar } from '../components/Avatar';
+import { avatarOf } from '../lib/rpg';
 import { BackButton, ErrorState, Loading } from '../components/ui';
 import { formatDay } from '../lib/dates';
 
@@ -32,7 +33,7 @@ export function ResultScreen({ revisit = false }: { revisit?: boolean }) {
       {revisit && <BackButton to="/perfil" />}
       <div className="card hero stack" style={{ alignItems: 'center', textAlign: 'center' }}>
         <span className="tiny muted">{revisit ? `Avaliação de ${formatDay(assessment.created_at.slice(0, 10), { day: 'numeric', month: 'long' })}` : 'Sua avaliação inicial'}</span>
-        <Emblem level={stats.level} size={110} />
+        <Avatar config={avatarOf(profile)} size={132} />
         <h1>{ref.archetype} em formação</h1>
         <p className="muted">{ref.summary}</p>
         <p className="small faint">Este é um retrato de referência baseado nas suas respostas, não um diagnóstico.</p>

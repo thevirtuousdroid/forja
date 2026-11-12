@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { isConfigured, supabase } from './lib/supabase';
 import { useApp } from './lib/AppData';
-import { BACKEND, friendlyError } from './lib/api';
+import { friendlyError } from './lib/api';
 import { ErrorState, TabBar } from './components/ui';
 import { Emblem } from './components/Emblem';
 import { AuthScreen } from './screens/Auth';
@@ -15,6 +15,13 @@ import { NewMissionScreen } from './screens/NewMission';
 import { JourneyScreen } from './screens/Journey';
 import { CharacterScreen } from './screens/Character';
 import { ProfileScreen } from './screens/Profile';
+import { AvatarEditorScreen } from './screens/AvatarEditor';
+import { InventoryScreen } from './screens/Inventory';
+import { AttributesScreen } from './screens/Attributes';
+import { AchievementsScreen } from './screens/Achievements';
+import { BossDetailScreen, BossesScreen } from './screens/Bosses';
+import { ModesScreen } from './screens/Modes';
+import { RewardOverlay } from './components/RewardOverlay';
 
 function Splash() {
   return (
@@ -59,7 +66,7 @@ function NewPassword({ onDone }: { onDone: () => void }) {
   );
 }
 
-const NO_TABS = [/^\/missoes\/.+/, /^\/resultado/];
+const NO_TABS = [/^\/missoes\/.+/, /^\/resultado/, /^\/personagem\/aparencia/, /^\/jornada\/chefes\/.+/];
 
 export function App() {
   const { signedIn, authReady, profile, error, refresh } = useApp();
@@ -71,14 +78,9 @@ export function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (BACKEND === 'supabase' && !isConfigured) return <NotConfigured />;
+  if (!isConfigured) return <NotConfigured />;
   if (!authReady) return <Splash />;
-  if (!signedIn) {
-    if (BACKEND === 'local') {
-      return <div className="screen no-tabs"><ErrorState message={error ?? 'Não foi possível abrir seus dados.'} onRetry={() => window.location.reload()} /></div>;
-    }
-    return <AuthScreen />;
-  }
+  if (!signedIn) return <AuthScreen />;
   if (recovery) return <NewPassword onDone={() => setRecovery(false)} />;
   if (!profile) return error ? <div className="screen no-tabs"><ErrorState message={error} onRetry={refresh} /></div> : <Splash />;
 
@@ -100,7 +102,14 @@ export function App() {
         <Route path="/missoes/nova" element={<NewMissionScreen />} />
         <Route path="/missoes/:id" element={<MissionDetailScreen />} />
         <Route path="/jornada" element={<JourneyScreen />} />
+        <Route path="/jornada/chefes" element={<BossesScreen />} />
+        <Route path="/jornada/chefes/:id" element={<BossDetailScreen />} />
+        <Route path="/jornada/modos" element={<ModesScreen />} />
         <Route path="/personagem" element={<CharacterScreen />} />
+        <Route path="/personagem/aparencia" element={<AvatarEditorScreen />} />
+        <Route path="/personagem/inventario" element={<InventoryScreen />} />
+        <Route path="/personagem/atributos" element={<AttributesScreen />} />
+        <Route path="/personagem/conquistas" element={<AchievementsScreen />} />
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/resultado" element={<ResultScreen />} />
         <Route path="/avaliacao/resultado" element={<ResultScreen revisit />} />
@@ -108,6 +117,7 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {showTabs && <TabBar />}
+      <RewardOverlay />
     </>
   );
 }

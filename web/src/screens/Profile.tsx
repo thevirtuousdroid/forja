@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BACKEND, api, friendlyError, localApi } from '../lib/api';
+import { api, friendlyError } from '../lib/api';
+import { modeDef } from '../lib/rpg';
 import { useApp } from '../lib/AppData';
 import { supabase } from '../lib/supabase';
 import { COMMON_TIMEZONES } from '../lib/dates';
@@ -10,7 +11,7 @@ import { Skeleton } from '../components/ui';
 import { getAccent, setAccent, ACCENTS, type Accent } from '../lib/theme';
 
 export function ProfileScreen() {
-  const { profile, habits, refresh, userEmail, storage } = useApp();
+  const { profile, habits, refresh, userEmail } = useApp();
   const { toast } = useFeedback();
   const [name, setName] = useState('');
   const [minDaily, setMinDaily] = useState(2);
@@ -68,8 +69,15 @@ export function ProfileScreen() {
         </div>
         <div className="field">
           <label>Meta mínima diária: <strong className="num">{minDaily} {minDaily === 1 ? 'missão' : 'missões'}</strong></label>
-          <input type="range" min={1} max={6} value={minDaily} onChange={(e) => setMinDaily(Number(e.target.value))} aria-label="Meta mínima diária" />
-          <span className="small faint">Bater essa meta mantém a sequência e rende +15 XP de Disciplina.</span>
+          <input type="range" min={1} max={6} value={minDaily} onChange={(e) => setMinDaily(Number(e.target.value))} aria-label="Meta mínima diária"
+                 disabled={profile.mode === 'extremo'} />
+          <span className="small faint">
+            {profile.mode === 'extremo'
+              ? 'No modo Extremo a meta é concluir todas as missões diárias, e o mínimo fica travado.'
+              : profile.mode === 'desafio'
+                ? 'No modo Desafio vale o maior entre este mínimo e 60% das missões diárias. Mudanças valem a partir de hoje.'
+                : 'Bater essa meta mantém a sequência e rende +15 XP de Disciplina. Mudanças valem a partir de hoje.'}
+          </span>
         </div>
         <div className="field">
           <label htmlFor="ptz">Fuso horário</label>
@@ -104,6 +112,12 @@ export function ProfileScreen() {
       )}
 
       <div className="card stack">
+        <Link to="/jornada/modos" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Modo de dificuldade: <strong>{modeDef(profile.mode).name}</strong></span><span className="faint">›</span>
+        </Link>
+        <Link to="/personagem/aparencia" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Aparência do personagem</span><span className="faint">›</span>
+        </Link>
         <Link to="/avaliacao/resultado" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Minha avaliação e plano</span><span className="faint">›</span>
         </Link>
@@ -121,75 +135,9 @@ export function ProfileScreen() {
         </div>
       )}
 
-      {BACKEND === 'local' && <BackupCard storage={storage} onRestored={refresh} />}
-
-      {BACKEND === 'supabase' && <button className="btn ghost danger" onClick={() => supabase.auth.signOut()}>Sair da conta</button>}
-      <span className="small faint center">Forja · versão MVP</span>
+      <button className="btn ghost danger" onClick={() => supabase.auth.signOut()}>Sair da conta</button>
+      <span className="small faint center">Forja · versão 0.3 (Etapa 3)</span>
     </div>
   );
 }
 
-type DownloadsApi = { save(f: { filename: string; data: string | Blob }): Promise<void> };
-
-function BackupCard({ storage, onRestored }: { storage: 'nuvem' | 'aparelho' | null; onRestored: () => Promise<void> }) {
-  const { toast } = useFeedback();
-  const [busy, setBusy] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-
-  async function exportBackup() {
-    const data = localApi.exportBackup();
-    const filename = `forja-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    const w = window as unknown as { claude?: { use(n: string): Promise<unknown> } };
-    try {
-      const downloads = (await w.claude?.use('downloads')) as DownloadsApi | null | undefined;
-      if (downloads) { await downloads.save({ filename, data }); return; }
-    } catch { return; /* a pessoa recusou o download */ }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-    a.download = filename;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  }
-
-  async function importBackup(file: File) {
-    setPendingFile(null);
-    setBusy(true);
-    try {
-      await localApi.importBackup(await file.text());
-      await onRestored();
-      toast('Backup restaurado.');
-    } catch (e) {
-      toast(friendlyError(e), 'error');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="card stack">
-      <h3>Seus dados</h3>
-      <p className="small muted">
-        {storage === 'nuvem'
-          ? 'Salvos no seu espaço privado do claude.ai: aparecem em qualquer aparelho em que você abrir esta página com a sua conta. Ninguém mais vê.'
-          : 'Salvos só neste navegador. Exporte um backup de vez em quando para não perder nada.'}
-      </p>
-      <div className="row">
-        <button className="btn sm grow" onClick={exportBackup}>Exportar backup</button>
-        <label className="btn sm grow" style={{ cursor: busy ? 'default' : 'pointer' }}>
-          {busy ? 'Restaurando…' : 'Restaurar backup'}
-          <input type="file" accept="application/json,.json" hidden disabled={busy}
-                 onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setPendingFile(f); }} />
-        </label>
-      </div>
-      {pendingFile && (
-        <div className="card flat stack" role="alertdialog" aria-label="Confirmar restauração">
-          <span className="small">Restaurar <strong>{pendingFile.name}</strong> substitui todo o progresso atual. Continuar?</span>
-          <div className="row">
-            <button className="btn sm primary grow" onClick={() => importBackup(pendingFile)}>Restaurar</button>
-            <button className="btn sm ghost grow" onClick={() => setPendingFile(null)}>Cancelar</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

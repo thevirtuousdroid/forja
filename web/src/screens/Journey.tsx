@@ -3,6 +3,9 @@ import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Journey, ProgressionEvent } from '../lib/types';
 import { MILESTONES, PHASES, formatTarget } from '../lib/game';
+import { modeDef } from '../lib/rpg';
+import { Link } from 'react-router-dom';
+import { BossArt } from '../components/BossArt';
 import { addDays, formatDay, parseDay } from '../lib/dates';
 import { ErrorState, Skeleton } from '../components/ui';
 import { IconShield } from '../components/Icons';
@@ -35,6 +38,23 @@ export function JourneyScreen() {
   return (
     <div className="screen">
       <h1>Jornada</h1>
+
+      <div className="grid-2">
+        <Link to="/jornada/chefes" className="tile">
+          <span className="small muted">Chefes</span>
+          {today.boss ? (
+            <span className="row" style={{ gap: 8 }}>
+              <BossArt id={today.boss.boss_id} size={34} damage={today.boss.effective / today.boss.hp} />
+              <span className="small" style={{ minWidth: 0 }}><strong>{today.boss.name}</strong><br /><span className="faint num">{today.boss.effective}/{today.boss.hp} golpes</span></span>
+            </span>
+          ) : <span className="small faint">Nenhuma batalha ativa</span>}
+        </Link>
+        <Link to="/jornada/modos" className="tile">
+          <span className="small muted">Modo</span>
+          <span className="num">{modeDef(today.mode ?? profile.mode).name}</span>
+          <span className="small faint">regras e dificuldade</span>
+        </Link>
+      </div>
 
       <div className="stat-grid four">
         <div className="stat"><div className="small muted">Sequência</div><div className="num">{journey.current_streak}</div></div>
@@ -71,7 +91,7 @@ export function JourneyScreen() {
           {Array.from({ length: totalCells }).map((_, i) => {
             const date = addDays(start, i);
             const d = byDate.get(date);
-            const cls = d ? d.status : 'futuro';
+            const cls = (d ? d.status : 'futuro') + (d?.mode && d.mode !== 'normal' ? ` m-${d.mode}` : '');
             const label = d ? `Dia ${i + 1}, ${formatDay(date)}: ${STATUS_TEXT[d.status]}, ${d.done} concluídas` : `Dia ${i + 1}, ${formatDay(date)}`;
             return <div key={date} role="listitem" className={`d ${cls}`} title={label} aria-label={label}>{i + 1}</div>;
           })}
@@ -81,6 +101,7 @@ export function JourneyScreen() {
           <span><i style={{ background: 'color-mix(in srgb, var(--accent) 30%, var(--surface-2))' }} />Parcial</span>
           <span><i style={{ background: 'var(--surface-2)', outline: '2px solid var(--attr-foco)', outlineOffset: -2 }} />Protegido</span>
           <span><i style={{ background: 'var(--surface-2)' }} />Em branco</span>
+          {journey.days.some((x) => x.mode && x.mode !== 'normal') && <span><i style={{ background: 'var(--warn)', borderRadius: '50%', width: 6, height: 6 }} />Desafio ou Extremo</span>}
         </div>
       </div>
 
