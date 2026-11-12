@@ -5,8 +5,8 @@ _Atualizado em 12/11/2026._
 | Etapa | Situação |
 |---|---|
 | 1 · Planejamento | ✅ `docs/PLANEJAMENTO.md` |
-| 2 · MVP | ✅ no ar em forja-kappa-wheat.vercel.app |
-| 3 · Gamificação | ✅ pronta e testada; entra no ar depois que o banco receber a migração `0004_rpg.sql` |
+| 2 · MVP | ✅ no ar |
+| 3 · Gamificação | ✅ no ar em forja-kappa-wheat.vercel.app (banco atualizado com `0004_rpg.sql`) |
 | 4 · Sistemas avançados | próxima |
 | 5 · Premium | |
 | 6 · Testes com amigos e lançamento | |
