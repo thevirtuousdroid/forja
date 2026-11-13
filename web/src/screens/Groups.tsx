@@ -140,6 +140,15 @@ export function GroupJoinScreen() {
   const nav = useNavigate();
   const { toast } = useFeedback();
   const [busy, setBusy] = useState(false);
+  const [mine, setMine] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    const c = (code ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+    api.groups().then((gs) => {
+      const g = gs.find((x) => x.invite_code === c);
+      setMine(g ? { id: g.id, name: g.name } : null);
+    }).catch(() => setMine(null));
+  }, [code]);
 
   async function join() {
     setBusy(true);
@@ -160,8 +169,17 @@ export function GroupJoinScreen() {
       <div className="card stack center" style={{ alignItems: 'center' }}>
         <span className="small muted">Código do grupo</span>
         <span className="code-box">{(code ?? '').toUpperCase()}</span>
-        <span className="small muted">No grupo, todos veem o ranking e podem criar desafios coletivos. Seu perfil segue as suas escolhas de privacidade.</span>
-        <button className="btn primary block" disabled={busy} onClick={join}>{busy ? 'Entrando…' : 'Entrar no grupo'}</button>
+        {mine ? (
+          <>
+            <span className="small muted">Você já está em <strong>{mine.name}</strong>.</span>
+            <button className="btn primary block" onClick={() => nav(`/social/grupos/${mine.id}`, { replace: true })}>Abrir o grupo</button>
+          </>
+        ) : (
+          <>
+            <span className="small muted">No grupo, todos veem o ranking e podem criar desafios coletivos. Seu perfil segue as suas escolhas de privacidade.</span>
+            <button className="btn primary block" disabled={busy} onClick={join}>{busy ? 'Entrando…' : 'Entrar no grupo'}</button>
+          </>
+        )}
       </div>
     </div>
   );

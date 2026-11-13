@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Challenge, ChallengeKind, ChallengeMetric, Dimension, FriendCard, GroupSummary, NewChallenge } from '../lib/types';
-import { CHALLENGE_KINDS, METRICS, metricLabel, metricUnit, plural } from '../lib/social';
+import { CHALLENGE_KINDS, METRICS, metricLabel, metricUnit, plural, collectiveLeft } from '../lib/social';
 import { DIMENSIONS, DIMENSION_KEYS } from '../lib/game';
 import { formatDay } from '../lib/dates';
 import { PersonAvatar, Sheet } from '../components/Social';
@@ -285,7 +285,7 @@ export function ChallengeDetailScreen() {
           <div className="row between"><h3>Juntos</h3><span className="num">{c.total} / {c.target}</span></div>
           <div className="bar"><span style={{ width: `${Math.min(1, c.total / c.target) * 100}%` }} /></div>
           <span className="small muted">
-            {c.total >= c.target ? 'Meta alcançada!' : `Faltam ${c.target - c.total} ${unit(c.target - c.total)}.`} Quem contribuir com pelo menos 1 ganha 30 XP se a meta for batida.
+            {c.total >= c.target ? 'Meta alcançada!' : collectiveLeft(c.metric, c.target - c.total)} Quem contribuir com pelo menos 1 ganha 30 XP se a meta for batida.
           </span>
         </div>
       ) : null}

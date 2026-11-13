@@ -7,7 +7,7 @@ import { DIMENSIONS } from '../lib/game';
 import { formatDay } from '../lib/dates';
 import { fmtMinutes, moodOf } from '../lib/tools';
 import { plural } from '../lib/social';
-import { RARITY } from '../lib/rpg';
+import { RARITY, midName } from '../lib/rpg';
 import { PremiumLock, Sheet } from '../components/Social';
 import { BackButton, ErrorState, Skeleton } from '../components/ui';
 import { IconCompass } from '../components/Icons';
@@ -237,7 +237,7 @@ export function ReportScreen() {
         <div className="card stack tight">
           <h3>Conquistas da semana</h3>
           <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-            {r.bosses.map((b) => <span key={b} className="pill accent">Venceu {b}</span>)}
+            {r.bosses.map((b) => <span key={b} className="pill accent">Venceu {midName(b)}</span>)}
             {r.achievements.map((a) => <span key={a.id} className="pill" style={{ color: RARITY[a.rarity].color }}>{a.name}</span>)}
           </div>
         </div>

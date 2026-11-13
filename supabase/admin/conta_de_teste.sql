@@ -172,9 +172,10 @@ begin
         d := v_today - k + v_day;
         perform public._ensure_day(v_bot, d);
         perform public._daily_maintenance(v_bot, d, (d + time '07:00') at time zone v_tz);
-        v_rate := case i when 1 then case when v_day % 9 = 0 then 1 else 99 end      -- Lia: quase sempre tudo
-                         when 2 then case when v_day % 3 = 0 then 1 else 99 end      -- Rafa: dois de cada três dias
-                         when 3 then case when v_day % 5 = 0 then 0 when v_day % 2 = 0 then 2 else 1 end  -- Nina: oscila
+        v_rate := case i when 1 then case when v_day in (5, 13) then 1 else 99 end                -- Lia: quase sempre tudo
+                         when 2 then case when v_day in (4, 9, 15, 20) then 1 else 99 end         -- Rafa: tropeça de vez em quando
+                         when 3 then case when v_day >= k - 3 then 99 when v_day % 5 = 0 then 0
+                                          when v_day % 2 = 0 then 2 else 1 end                      -- Nina: oscila, voltando agora
                          else 2 end;
         v_done := 0;
         for m in select ms.id from public.missions ms
@@ -347,6 +348,36 @@ begin
                    order by ic.slot, array_position(array['comum','raro','epico','lendario'], ic.rarity) desc, ic.sort desc) x)),
     active_title = 'tit_66'
   where id = v_uid;
+
+  -- Datas coerentes com o histórico simulado (tudo foi criado agora, mas aconteceu nos dias simulados)
+  foreach v_bot in array array[v_uid] || v_bots loop
+    update public.user_achievements ua set unlocked_at = (l.day + time '20:30') at time zone v_tz
+      from public.xp_ledger l
+     where ua.user_id = v_bot and l.user_id = v_bot and l.source = 'conquista' and l.ref = ua.achievement_id and l.day < v_today;
+    -- Conquistas de nível não dão XP: a data é o dia em que o XP acumulado chegou ao nível
+    update public.user_achievements ua set unlocked_at = (x.day + time '21:00') at time zone v_tz
+      from (select ac.id, (select min(dd.day) from (select day, sum(sum(amount)) over (order by day) as cum
+                                                       from public.xp_ledger where user_id = v_bot group by day) dd
+                            where dd.cum >= public.xp_for_level(ac.threshold)) as day
+              from public.achievement_catalog ac where ac.metric = 'nivel') x
+     where ua.user_id = v_bot and ua.achievement_id = x.id and x.day is not null and x.day < v_today;
+    if v_etapa4 then
+      update public.feed_posts fp set created_at = ua.unlocked_at
+        from public.user_achievements ua
+       where fp.author = v_bot and fp.kind = 'conquista' and ua.user_id = v_bot and ua.achievement_id = fp.ref;
+      update public.feed_posts fp set created_at = f.finished_at
+        from public.user_bosses f
+       where fp.author = v_bot and fp.kind = 'chefe' and f.id::text = fp.ref and f.finished_at is not null;
+      update public.feed_posts fp set created_at = (x.day + time '21:00') at time zone v_tz
+        from (select fp2.id, (select min(dd.day) from (select day, sum(sum(amount)) over (order by day) as cum
+                                                           from public.xp_ledger where user_id = v_bot group by day) dd
+                                where dd.cum >= public.xp_for_level(fp2.ref::int)) as day
+                from public.feed_posts fp2 where fp2.author = v_bot and fp2.kind = 'nivel') x
+       where fp.id = x.id and x.day is not null;
+      update public.feed_posts fp set created_at = (public._season_end(fp.ref::int) + 1 + time '09:00') at time zone v_tz
+       where fp.author = v_bot and fp.kind = 'temporada';
+    end if;
+  end loop;
 
   -- Avisos antigos já vistos (ficam só os sociais novos: pedido, convite e incentivos)
   update public.user_events set seen = true

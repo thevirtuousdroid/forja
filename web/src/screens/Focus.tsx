@@ -76,9 +76,13 @@ export function useTimer(key: string, onFinish: (s: TimerState) => void) {
   const elapsed = state ? Math.max(0, ((state.pausedAt ?? now) - state.startedAt - state.pausedTotal) / 1000) : 0;
   const remaining = state ? Math.max(0, state.durationSec - elapsed) : 0;
 
+  // Uma sessão termina uma vez só, mesmo se a tela montar de novo antes de atualizar
+  const finished = useRef<number | null>(null);
   useEffect(() => {
     if (state && !state.pausedAt && remaining <= 0) {
       const s = state;
+      if (finished.current === s.startedAt) return;
+      finished.current = s.startedAt;
       save(null);
       chime();
       finish.current(s);

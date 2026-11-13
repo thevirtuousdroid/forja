@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, friendlyError, isPremiumError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Challenge, CheerKind, FeedPost, GroupSummary, SeasonInfo, SocialInfo } from '../lib/types';
-import { CHEERS, REACTIONS, metricLabel, plural, postText, prettyCode, relativeTime, friendLink, shareOrCopy } from '../lib/social';
+import { CHEERS, REACTIONS, metricLabel, metricUnit, plural, postText, prettyCode, relativeTime, friendLink, shareOrCopy } from '../lib/social';
+import { formatDay } from '../lib/dates';
 import { RARITY } from '../lib/rpg';
 import { Badge } from '../components/Badge';
 import { BossArt } from '../components/BossArt';
@@ -457,9 +458,14 @@ export function ChallengeCard({ c }: { c: Challenge }) {
           <div className="bar thin"><span style={{ width: `${Math.min(1, c.total / c.target) * 100}%` }} /></div>
           <span className="small faint num">{c.total} de {c.target}</span>
         </div>
+      ) : c.phase === 'agendado' ? (
+        <span className="small faint">Começa {formatDay(c.starts_on, { weekday: 'long', day: 'numeric', month: 'short' })}</span>
       ) : me && leader ? (
         <span className="small faint num">
-          Você: {me.score}{leader.me ? ' · você lidera' : ` · liderança: ${leader.user.name || 'alguém'} com ${leader.score}`}
+          Você: {me.score} {metricUnit(c.metric, me.score)}
+          {c.status !== 'ativo'
+            ? (me.rank ? ` · ${me.rank}º de ${accepted.length}` : '')
+            : leader.me ? ' · você lidera' : ` · na frente: ${leader.user.name || 'alguém'} com ${leader.score}`}
         </span>
       ) : null}
       {c.my_result && c.status === 'encerrado' && (

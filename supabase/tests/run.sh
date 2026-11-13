@@ -8,7 +8,7 @@ PGBIN="$(dirname "$(ls /usr/lib/postgresql/*/bin/initdb 2>/dev/null | tail -1)")
 export PATH="$PGBIN:$PATH"
 
 DATA="$(mktemp -d)"
-PORT=54329
+PORT=54328
 RUN_AS=""
 if [ "$(id -u)" = "0" ]; then
   chown -R postgres "$DATA"

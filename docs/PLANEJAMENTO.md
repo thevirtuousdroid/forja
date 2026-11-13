@@ -222,6 +222,73 @@ Sete chefes, cada um com arte, história, dificuldade e recompensas próprias. *
 
 Nível, conquista, item novo, vitória, recuo e rebaixamento de modo viram **avisos guardados no servidor**. O app mostra cada um uma vez, com animação, e marca como visto. Assim nada se perde, mesmo que algo aconteça enquanto o app está fechado.
 
+Na Etapa 4 entram o fim de temporada, o resultado de desafio e o relatório semanal. Avisos sociais (pedidos, incentivos, convites e entradas em grupo) não interrompem: ficam no sininho da aba Social.
+
+### 4.13 Amigos e privacidade (Etapa 4)
+
+- Cada pessoa tem um **código de amizade** de 6 caracteres, sem letras que se confundem (0, 1, I, L, O), e um link `/amigo/CÓDIGO`. Dá para gerar outro código.
+- Pedido → aceite ou recusa. Pedidos cruzados viram amizade na hora. Quem foi recusado espera 7 dias para pedir de novo. Limites: 50 amigos e 20 pedidos pendentes.
+- **Privacidade** com 8 escolhas: nível e título, sequência e semana, conquistas e chefes, atributos, áreas dos hábitos (desligada por padrão), publicar no feed, receber pedidos e aparecer no ranking. O servidor monta o cartão de cada pessoa já aplicando essas escolhas.
+- Amigos e colegas de grupo veem o perfil uns dos outros. Diário e detalhes dos hábitos nunca são mostrados.
+
+### 4.14 Feed e incentivos
+
+- Publicações são retratos do momento: conquista (exceto ocultas), primeira vitória sobre um chefe, nível múltiplo de 5 e temporada a partir da liga Prata. Saem sozinhas, se a pessoa deixar, ou à mão. Quem publicou pode apagar.
+- Quatro reações (👏 💪 🔥 🎯), uma por publicação, trocando ou desfazendo com um toque. Incentivo direto: um por dia para cada amigo. No máximo 40 incentivos por dia. Incentivos não dão XP, para não virarem moeda de troca.
+
+### 4.15 Grupos e desafios
+
+- Grupo: até 30 pessoas, código de convite de 7 caracteres, link `/grupo/CÓDIGO`. Cada pessoa cria até 5 grupos e participa de até 10.
+- Desafio **competitivo** (quem fizer mais vence, empates vencem juntos) ou **coletivo** (todos somam para uma meta). Contam a meta do dia, as missões do plano (até 12 por dia) ou os dias com missão numa área. Duram de 3 a 30 dias e começam hoje ou amanhã.
+- Cada pessoa é julgada no próprio fuso e no próprio modo. Não há missões extras: o desafio mede o que já está no plano.
+- Recompensas: 40 XP para quem vence e 30 XP para quem contribuiu com uma meta coletiva batida, até 2 por semana.
+
+### 4.16 Temporadas e ligas
+
+Uma temporada por mês. Os pontos são recalculados das missões confirmadas no servidor:
+
+| Fonte | Pontos |
+|---|---|
+| Dia com a meta cumprida | +10 |
+| Missão do plano (avulsas não contam) | +2, até 5 por dia |
+| Dia perfeito (todas as diárias) | +5 |
+| Chefe vencido (revanche) | +15 (+5) |
+| Desafio vencido ou meta coletiva | +10, até 4 por temporada |
+| Objetivos: 15 dias com meta · 3 dias perfeitos · vencer um chefe | +30 · +20 · +20 |
+
+No máximo 25 pontos por dia: o ranking mede constância, não volume.
+
+| Liga | Bronze | Prata | Ouro | Platina | Diamante | Mestre |
+|---|---|---|---|---|---|---|
+| A partir de | 0 | 120 | 260 | 400 | 540 | 680 |
+| XP no fim do mês | – | 25 | 50 | 80 | 120 | 160 |
+
+A temporada fecha no primeiro acesso do mês seguinte, com liga, XP, posição entre amigos, aviso e publicação. O ranking é entre amigos ou num grupo, por pontos, constância, XP ou chefes.
+
+### 4.17 Ferramentas
+
+| Ferramenta | Registro | Missão que ajuda a cumprir |
+|---|---|---|
+| Foco | Timer de 15 a 60 min com pausa; continua contando com o app fechado | Qualquer missão em minutos, escolhida na hora |
+| Água | Copos (+1/−1), meta do hábito ou da ferramenta | Água |
+| Sono | Horários e qualidade (1 a 5), meta de horas | – |
+| Alimentação | Refeições, calorias opcionais | – |
+| Leitura | Livros, páginas e minutos | Leitura |
+| Meditação | Respiração guiada (4 e 6 tempos), meditação ou relaxamento | Meditação, respiração |
+| Tempo de tela | Minutos do dia, registrados à mão | Redes no limite |
+| Diário | Humor, texto e gratidão; um por dia | Reflexão do dia |
+| Hábitos | Grade das últimas 4 semanas de cada hábito | – |
+
+A ferramenta mostra a missão como "pronta", mas **quem conclui é a pessoa**. A alimentação não sugere metas e traz o aviso de que não é orientação nutricional. O sono traz o aviso de procurar um profissional se dormir bem estiver difícil com frequência.
+
+### 4.18 Mentor
+
+- Liga só com o consentimento da pessoa e pode ser desligado a qualquer momento.
+- Regras que rodam no servidor, sobre os dados da própria pessoa. Não faz diagnóstico. Do diário, usa só o número do humor, nunca o texto.
+- **Análises:** constância, tendência entre semanas, horário em que mais conclui, áreas mais forte e mais fraca, dias da semana, sono, água e humor nos dias com meditação.
+- **Sugestões**, que só mudam algo quando a pessoa aceita: baixar a meta de um hábito pesado, pausar um hábito esquecido, mudar a meta diária, experimentar o modo Desafio, enfrentar um chefe disponível e lembrar de descansar. São reavaliadas uma vez por dia. Uma sugestão recusada não volta por 14 dias.
+- **Relatório semanal** (segunda a domingo), criado na primeira abertura da semana seguinte, com missões, dias com meta, XP, áreas, melhor dia, conquistas, chefes e ferramentas. Também há a visão de "esta semana até agora".
+
 ---
 
 ## 5. Identidade visual
@@ -242,7 +309,11 @@ Nível, conquista, item novo, vitória, recuo e rebaixamento de modo viram **avi
 ```
 Splash → Login/Cadastro → Boas-vindas (3 telas) → Questionário (7 etapas) → Resultado da avaliação → Início
                                                                                                       │
-Abas inferiores:  Início · Missões · Jornada (calendário + plano) · Personagem · Perfil
+Abas inferiores:  Início · Missões · Social · Jornada · Personagem   (Perfil pela engrenagem no Início e na Jornada)
+
+Social: temporada, desafios, feed, amigos, grupos, avisos, ranking, privacidade
+Ferramentas (pelo Início): foco, água, sono, alimentação, leitura, meditação, tempo de tela, diário, hábitos
+Mentor (pelo Início e pela Jornada): análises, sugestões, relatórios
 ```
 
 ---
@@ -253,7 +324,10 @@ Abas inferiores:  Início · Missões · Jornada (calendário + plano) · Person
 |---|---|
 | Avaliação, plano de 66 dias completo, 2 hábitos personalizados recorrentes, até 5 missões avulsas por dia, XP, níveis, sequências, estatísticas essenciais | Hábitos e missões ilimitados, modos Desafio/Extremo, chefes, temporadas, ferramentas auxiliares completas, assistente de IA, relatórios, temas |
 
-> Na Etapa 3, personagem, chefes e modos ficaram liberados para todos. A divisão entre gratuito e premium é aplicada na Etapa 5, com uma tabela no servidor onde o administrador escolhe o que é pago.
+> **Premium liberado para todos por tempo limitado.** O servidor guarda se a liberação está ativa e até que dia (`app_config`). O administrador define a data quando quiser, no SQL Editor:
+> `select admin_set_premium_aberto(true, '2027-01-31');` (liberado até 31/01/2027), `select admin_set_premium_aberto(false);` (encerra agora).
+> A tabela `premium_features` diz o que é pago: hábitos ilimitados, modos, chefes, temporadas, ferramentas completas, Mentor e relatórios. O administrador muda com `admin_set_feature('chefes', false)`. A conferência acontece no servidor, na entrada de cada recurso.
+> Quando a liberação acaba, **nada é apagado**: itens, conquistas, XP e histórico continuam. Só deixa de dar para começar algo premium, como um chefe novo, o modo Extremo ou uma ferramenta extra. Foco, água e diário continuam gratuitos.
 
 O plano fica em `profiles.plan` e só muda por função administrativa (`admin_set_plan`) ou, no futuro, por validação de pagamento no servidor. Preços não são definidos aqui: haverá uma tabela de configuração quando o pagamento existir.
 
@@ -266,6 +340,6 @@ O plano fica em `profiles.plan` e só muda por função administrativa (`admin_s
 | 1 | Planejamento | ✅ este documento |
 | 2 | MVP: cadastro, onboarding, avaliação, programa de 66 dias, missões, XP, níveis, atributos, sequências, dashboard | ✅ |
 | 3 | Personagem visual, inventário, conquistas, chefes, modos de dificuldade | ✅ |
-| 4 | Amigos, grupos, ranking, temporadas, ferramentas (foco, água, sono, leitura, diário), assistente de IA, notificações | |
+| 4 | Amigos, grupos, ranking, temporadas, ferramentas (foco, água, sono, leitura, diário), Mentor, relatório semanal, Premium liberado para todos | ✅ (notificações em seguida) |
 | 5 | Premium: decidir quais recursos são pagos (estrutura administrativa no servidor); pagamentos só se virar produto | |
 | 6 | Testes de usabilidade com amigos, ajustes, publicação | |

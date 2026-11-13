@@ -212,7 +212,7 @@ export function RewardOverlay() {
       actions = (
         <div className="row" style={{ width: '100%' }}>
           <button className="btn ghost grow" onClick={next}>Fechar</button>
-          <button ref={btn} className="btn primary grow" onClick={() => { next(); nav('/social/temporada'); }}>Nova temporada</button>
+          <button ref={btn} className="btn primary grow" onClick={() => { next(); nav('/social/temporada'); }}>Ver temporada</button>
         </div>
       );
       break;

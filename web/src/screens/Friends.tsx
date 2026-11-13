@@ -36,7 +36,11 @@ export function AddFriendScreen() {
     try { setFound(await api.lookupCode(c)); } catch (e) { setError(friendlyError(e)); } finally { setBusy(false); }
   }, []);
 
-  useEffect(() => { if (linkCode) void lookup(linkCode); }, [linkCode, lookup]);
+  useEffect(() => {
+    if (!linkCode) return;
+    setCode(prettyCode(linkCode.toUpperCase()));
+    void lookup(linkCode);
+  }, [linkCode, lookup]);
 
   async function send() {
     setBusy(true);
@@ -103,7 +107,7 @@ export function AddFriendScreen() {
         <span className="small muted">Quem tiver seu código ou link pode mandar um pedido. Você aceita ou não.</span>
         <div className="row" style={{ width: '100%' }}>
           <button className="btn grow" onClick={copyMine} disabled={!info}><IconCopy /> Copiar</button>
-          <button className="btn primary grow" onClick={shareMine} disabled={!info}><IconShare /> Mandar convite</button>
+          <button className="btn primary grow" onClick={shareMine} disabled={!info}><IconShare /> Enviar link</button>
         </div>
       </div>
       <Link to="/social/privacidade" className="link small center">Privacidade e código</Link>

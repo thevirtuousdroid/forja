@@ -42,6 +42,13 @@ export function metricUnit(metric: ChallengeMetric, n: number) {
   return n === 1 ? one : many;
 }
 
+/** Quanto falta para a meta coletiva, somando todo mundo. */
+export function collectiveLeft(metric: ChallengeMetric, n: number) {
+  if (metric === 'missoes') return `Faltam ${plural(n, 'missão', 'missões')}, somando todo mundo.`;
+  if (metric === 'area') return `Faltam ${plural(n, 'dia', 'dias')} com missão na área, somando todo mundo.`;
+  return `Faltam ${plural(n, 'dia', 'dias')} de meta cumprida, somando todo mundo.`;
+}
+
 export function metricLabel(metric: ChallengeMetric, dimension: Dimension | null) {
   return metric === 'area' && dimension ? `Dias de ${DIMENSIONS[dimension].short}` : METRICS[metric].label;
 }

@@ -4,7 +4,7 @@ Web app de evolução pessoal gamificada: hábitos reais viram missões, geram X
 
 Funciona no navegador e pode ser **instalado na tela inicial do iPhone** (e do Android) como um app.
 
-- `docs/PLANEJAMENTO.md`: decisões de produto, arquitetura, regras e fórmulas (Etapa 1)
+- `docs/PLANEJAMENTO.md`: decisões de produto, arquitetura, regras e fórmulas (atualizado até a Etapa 4)
 - `docs/STATUS.md`: o que está pronto, o que foi testado e o que falta
 - `supabase/`: banco de dados e regras do jogo (rodam no servidor)
 - `web/`: o app
@@ -59,17 +59,38 @@ Depois de publicar, no Supabase em **Authentication → URL Configuration**, col
 
 Mande o mesmo endereço para os amigos; cada um cria a própria conta.
 
-### 5. Liberar o Premium para alguém
+### 5. Premium
 
-Não há pagamento: o administrador libera. No **SQL Editor** do Supabase:
+Não há pagamento: o administrador libera. Os comandos abaixo são rodados no **SQL Editor** do Supabase.
+
+**Liberado para todos por tempo limitado.** Depois da Etapa 4, o Premium começa liberado para todos, ainda sem data de fim. Quando decidir a data:
+
+```sql
+select admin_set_premium_aberto(true, '2027-01-31');  -- liberado até 31/01/2027 (inclusive)
+select admin_set_premium_aberto(false);               -- encerra a liberação agora
+select admin_set_premium_aberto(true);                -- libera de novo, sem data de fim
+```
+
+Quando a liberação acaba, ninguém perde nada do que já conquistou. Só deixa de dar para começar algo premium, como um chefe novo, o modo Extremo ou uma ferramenta extra.
+
+**Para uma pessoa específica**, mesmo depois que a liberação acabar:
 
 ```sql
 select admin_set_plan('email@da.pessoa', 'premium');
+select admin_set_plan('email@da.pessoa', 'free');     -- volta para o gratuito
+```
+
+**O que é premium.** São 7 recursos: `habitos_ilimitados`, `modos`, `chefes`, `temporadas`, `ferramentas_extras`, `mentor` e `relatorios`. Para tornar um deles gratuito para todos (ou premium de novo):
+
+```sql
+select admin_set_feature('chefes', false);   -- chefes passam a ser gratuitos
+select admin_set_feature('chefes', true);    -- chefes voltam a ser premium
+select * from premium_features order by sort; -- lista o que é premium hoje
 ```
 
 ### 6. Atualizar um banco que já está em uso
 
-Quando sai uma etapa nova, o banco recebe uma migração nova em `supabase/migrations/` (por exemplo, `0004_rpg.sql`).
+Quando sai uma etapa nova, o banco recebe uma migração nova em `supabase/migrations/` (a da Etapa 4 é `0005_etapa4.sql`).
 Rode **só a migração nova** no **SQL Editor**, do mesmo jeito do passo 1. As migrações podem ser rodadas de novo sem estragar nada,
 e o progresso de quem já usa o app é mantido. Não rode o `forja_completo.sql` num banco que já está em uso: ele é para projetos novos.
 
@@ -99,3 +120,4 @@ supabase/tests/run.sh       # testes do banco: precisa do PostgreSQL instalado (
 O teste do banco sobe um Postgres temporário, aplica as migrações e verifica:
 - **MVP:** fórmulas, avaliação, plano de 66 dias, bloqueio de escrita direta, conclusão duplicada, bônus, desfazer, limites, isolamento entre usuários e uma simulação de 30 dias.
 - **Etapa 3:** itens e avatar, títulos, conquistas e avisos, chefes (bloqueios, golpes, desfazer, vitória, revanche, recuo e cura), modos de dificuldade (requisitos, meta, escudos, XP, histórico de regras e rebaixamento) e as travas do modo Extremo.
+- **Etapa 4:** Premium liberado e encerrado, amigos e privacidade, feed e incentivos, grupos, desafios competitivos e coletivos, temporadas e ligas, ranking, as 9 ferramentas, o Mentor e o relatório semanal, além do script da conta de teste.

@@ -58,7 +58,7 @@ create table if not exists public.feed_posts (
   created_at  timestamptz not null default now(),
   unique (author, kind, ref)
 );
-create index if not exists feed_posts_author_idx on public.feed_posts (author, id desc);
+create index if not exists feed_posts_author_idx on public.feed_posts (author, created_at desc, id desc);
 
 -- Incentivos: reação a uma publicação ou mensagem direta para um amigo
 create table if not exists public.cheers (
@@ -967,10 +967,12 @@ begin
       select v_uid as id
       union
       select x from _friend_ids(v_uid) x),
+    -- Mais recentes primeiro; p_before é a última publicação já carregada
     posts as (
       select fp.* from feed_posts fp join authors a on a.id = fp.author
-       where p_before is null or fp.id < p_before
-       order by fp.id desc limit 30)
+       where p_before is null
+          or (fp.created_at, fp.id) < (select b.created_at, b.id from feed_posts b where b.id = p_before)
+       order by fp.created_at desc, fp.id desc limit 30)
     select coalesce(jsonb_agg(jsonb_build_object(
       'id', p.id, 'kind', p.kind, 'ref', p.ref, 'data', p.data, 'created_at', p.created_at,
       'author', _lite(p.author), 'mine', p.author = v_uid,
@@ -979,7 +981,7 @@ begin
       'cheerers', (select coalesce(jsonb_agg(_lite(s.sender)), '[]'::jsonb)
                      from (select ch.sender from cheers ch where ch.post_id = p.id order by ch.id desc limit 5) s),
       'my_cheer', (select ch.kind from cheers ch where ch.post_id = p.id and ch.sender = v_uid)
-    ) order by p.id desc), '[]'::jsonb)
+    ) order by p.created_at desc, p.id desc), '[]'::jsonb)
     from posts p);
 end $$;
 
