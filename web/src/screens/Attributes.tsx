@@ -17,16 +17,18 @@ function Radar({ levels }: { levels: Record<Attribute, number> }) {
   const ring = (f: number) => ATTRIBUTE_KEYS.map((_, k) => pt(k, R * f).join(',')).join(' ');
   const shape = ATTRIBUTE_KEYS.map((a, k) => pt(k, R * (levels[a] / max)).join(',')).join(' ');
   return (
-    <svg viewBox="-46 0 312 214" className="radar" role="img" style={{ width: '100%', maxWidth: 360 }}
+    <svg viewBox="-70 0 360 214" className="radar" role="img" style={{ width: '100%', maxWidth: 360 }}
          aria-label={ATTRIBUTE_KEYS.map((a) => `${ATTRIBUTES[a].label} nível ${levels[a]}`).join(', ')}>
       {[1, 0.66, 0.33].map((f) => <polygon key={f} points={ring(f)} fill="none" stroke="var(--line)" strokeWidth="1" />)}
       {ATTRIBUTE_KEYS.map((_, k) => { const [x, y] = pt(k, R); return <line key={k} x1={cx} y1={cy} x2={x} y2={y} stroke="var(--line)" />; })}
       <polygon points={shape} fill="var(--accent)" fillOpacity="0.25" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" />
       {ATTRIBUTE_KEYS.map((a, k) => { const [x, y] = pt(k, R * (levels[a] / max)); return <circle key={a} cx={x} cy={y} r="3.5" fill={ATTRIBUTES[a].color} />; })}
       {ATTRIBUTE_KEYS.map((a, k) => {
-        const [x, y] = pt(k, R + 18);
+        // Rótulos dos lados crescem para fora, para não entrar no desenho
+        const [x, y] = pt(k, R + 12);
+        const anchor = x > cx + 5 ? 'start' : x < cx - 5 ? 'end' : 'middle';
         return (
-          <text key={a} x={x} y={y} textAnchor="middle" dominantBaseline="middle">
+          <text key={a} x={x} y={k === 0 ? y - 6 : y} textAnchor={anchor} dominantBaseline="middle">
             <tspan fill={ATTRIBUTES[a].color} fontWeight="700">{levels[a]}</tspan> {ATTRIBUTES[a].label}
           </text>
         );

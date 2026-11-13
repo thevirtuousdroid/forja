@@ -160,7 +160,7 @@ export function ProfileScreen() {
       <button className="btn ghost danger" onClick={async () => { await disablePush().catch(() => {}); await supabase.auth.signOut(); }}>
         Sair da conta
       </button>
-      <span className="small faint center">Forja · versão 0.5</span>
+      <span className="small faint center">Forja · versão 0.5.1</span>
     </div>
   );
 }

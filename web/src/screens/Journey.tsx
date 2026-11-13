@@ -45,7 +45,7 @@ export function JourneyScreen() {
           {today.boss ? (
             <span className="row" style={{ gap: 8 }}>
               <BossArt id={today.boss.boss_id} size={34} damage={today.boss.effective / today.boss.hp} />
-              <span className="small" style={{ minWidth: 0 }}><strong>{today.boss.name}</strong><br /><span className="faint num">{today.boss.effective}/{today.boss.hp} golpes</span></span>
+              <span className="small" style={{ minWidth: 0 }}><strong>{today.boss.name}</strong><br /><span className="faint">{today.boss.effective}/{today.boss.hp} golpes</span></span>
             </span>
           ) : <span className="small faint">Nenhuma batalha ativa</span>}
         </Link>
