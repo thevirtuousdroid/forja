@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { IconCheck, IconChevronLeft, IconHome, IconMap, IconShield, IconTarget, IconUser } from './Icons';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { IconCheck, IconChevronLeft, IconGear, IconHome, IconMap, IconShield, IconTarget, IconUsers } from './Icons';
+import { useApp } from '../lib/AppData';
 import type { Mission } from '../lib/types';
 import { DIMENSIONS, KIND_LABEL, formatTarget, levelProgress } from '../lib/game';
 
@@ -40,20 +41,27 @@ export function BackButton({ to }: { to?: string }) {
   );
 }
 
+/** Atalho para o Perfil (configurações), no canto das telas principais. */
+export function ProfileLink() {
+  return <Link to="/perfil" className="icon-btn" aria-label="Perfil e configurações"><IconGear /></Link>;
+}
+
 export function TabBar() {
+  const { socialUnseen } = useApp();
   const items = [
     { to: '/', label: 'Início', icon: <IconHome />, end: true },
     { to: '/missoes', label: 'Missões', icon: <IconTarget /> },
+    { to: '/social', label: 'Social', icon: <IconUsers />, badge: socialUnseen },
     { to: '/jornada', label: 'Jornada', icon: <IconMap /> },
     { to: '/personagem', label: 'Personagem', icon: <IconShield /> },
-    { to: '/perfil', label: 'Perfil', icon: <IconUser /> },
   ];
   return (
     <div className="tabbar">
       <nav aria-label="Navegação principal">
         {items.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.end} className={({ isActive }) => (isActive ? 'active' : '')}>
-            {i.icon}
+          <NavLink key={i.to} to={i.to} end={i.end} className={({ isActive }) => (isActive ? 'active' : '')}
+                   aria-label={i.badge ? `${i.label}, ${i.badge} ${i.badge === 1 ? 'aviso novo' : 'avisos novos'}` : undefined}>
+            <span className="tab-icon">{i.icon}{i.badge ? <b className="tab-badge num">{i.badge > 9 ? '9+' : i.badge}</b> : null}</span>
             {i.label}
           </NavLink>
         ))}

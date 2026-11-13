@@ -8,6 +8,9 @@ import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { BossArt } from './BossArt';
 import { useFeedback } from './Feedback';
+import { LeagueBadge } from './Social';
+import { metricUnit, plural } from '../lib/social';
+import { formatDay } from '../lib/dates';
 
 interface QueueItem { ids: number[]; event: GameEvent }
 
@@ -64,7 +67,7 @@ export function RewardOverlay() {
   useEffect(() => {
     if (!current) return;
     btn.current?.focus();
-    if (current.event.kind === 'chefe_vencido' || current.event.kind === 'nivel') navigator.vibrate?.([30, 40, 70]);
+    if (current.event.kind === 'chefe_vencido' || current.event.kind === 'nivel' || current.event.kind === 'temporada') navigator.vibrate?.([30, 40, 70]);
   }, [current?.ids.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!current || !profile) return null;
@@ -191,6 +194,79 @@ export function RewardOverlay() {
         </div>
       );
       break;
+    case 'temporada': {
+      const d = e.data;
+      body = (
+        <>
+          <span className="tiny muted">{d.name} de {d.year} encerrada</span>
+          <div className="reward-art pop"><Sparks count={18} /><LeagueBadge league={d.league.id} size={130} /></div>
+          <h2>Liga {d.league.name}</h2>
+          <p className="muted center">
+            {plural(d.points, 'ponto', 'pontos')} · meta cumprida em {plural(d.goal_days, 'dia', 'dias')}
+            {d.rank && d.of && d.of > 1 ? ` · ${d.rank}º entre ${d.of} amigos` : ''}
+          </p>
+          {d.xp > 0 && <span className="pill accent num">+{d.xp} XP</span>}
+          <p className="small faint center">Uma nova temporada começou e os pontos voltaram a zero. XP, itens e conquistas continuam seus.</p>
+        </>
+      );
+      actions = (
+        <div className="row" style={{ width: '100%' }}>
+          <button className="btn ghost grow" onClick={next}>Fechar</button>
+          <button ref={btn} className="btn primary grow" onClick={() => { next(); nav('/social/temporada'); }}>Nova temporada</button>
+        </div>
+      );
+      break;
+    }
+    case 'desafio_fim': {
+      const d = e.data;
+      const c = d.challenge;
+      const won = d.result === 'venceu' || d.result === 'meta_coletiva';
+      body = (
+        <>
+          <span className="tiny muted">Desafio encerrado</span>
+          {won && <div className="reward-art pop"><Sparks count={14} /><span className="reward-big">{d.result === 'venceu' ? 'Vitória!' : 'Meta batida!'}</span></div>}
+          <h2>{c.title}</h2>
+          <p className="muted center">
+            {c.kind === 'coletivo'
+              ? `Juntos: ${d.total} de ${c.target ?? '?'} ${metricUnit(c.metric, d.total)}. Sua parte: ${d.score}.`
+              : d.result === 'venceu'
+                ? `Você terminou na frente com ${d.score} ${metricUnit(c.metric, d.score)}${d.winners.length > 1 ? ' (empate)' : ''}.`
+                : `Você fez ${d.score} ${metricUnit(c.metric, d.score)}. ${d.winners.length ? `Vitória de ${d.winners.map((w) => w.name || 'alguém').join(' e ')}.` : 'Ninguém pontuou.'}`}
+          </p>
+          {d.xp > 0 ? <span className="pill accent num">+{d.xp} XP</span>
+            : won ? <span className="small faint center">Sem XP desta vez: já foram 2 recompensas de desafio nesta semana.</span> : null}
+        </>
+      );
+      actions = (
+        <div className="row" style={{ width: '100%' }}>
+          <button className="btn ghost grow" onClick={next}>Fechar</button>
+          <button ref={btn} className="btn primary grow" onClick={() => { next(); nav(`/social/desafios/${c.id}`); }}>Ver placar</button>
+        </div>
+      );
+      break;
+    }
+    case 'relatorio': {
+      const d = e.data;
+      body = (
+        <>
+          <span className="tiny muted">Relatório semanal</span>
+          <h2>Semana de {formatDay(d.week_start, { day: 'numeric', month: 'long' })}</h2>
+          <p className="muted center">{d.highlight}</p>
+          <div className="row" style={{ gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <span className="pill num">{plural(d.missions, 'missão', 'missões')}</span>
+            <span className="pill num">meta em {d.goal_days} de {d.days} dias</span>
+            {d.xp > 0 && <span className="pill accent num">+{d.xp} XP</span>}
+          </div>
+        </>
+      );
+      actions = (
+        <div className="row" style={{ width: '100%' }}>
+          <button className="btn ghost grow" onClick={next}>Depois</button>
+          <button ref={btn} className="btn primary grow" onClick={() => { next(); nav(`/mentor/relatorio/${d.week_start}`); }}>Ver relatório</button>
+        </div>
+      );
+      break;
+    }
     case 'modo_rebaixado':
       body = (
         <>

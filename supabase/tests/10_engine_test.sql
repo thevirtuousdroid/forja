@@ -127,7 +127,10 @@ begin
   raise notice 'OK concluir / duplicidade / bônus / desfazer';
 end $$;
 
--- Missões personalizadas e limites
+-- Missões personalizadas e limites (sem a liberação do Premium da Etapa 4, vale o limite do plano gratuito)
+reset role;
+update public.app_config set premium_aberto = false;
+set role authenticated;
 do $$ begin
   begin
     perform public.create_custom_mission('Supermissão', '', 'fisica', 5, 30, false);
@@ -146,6 +149,9 @@ do $$ begin
   assert exists (select 1 from public.missions where name = 'Ligar para minha avó' and kind = 'personalizada');
   raise notice 'OK personalizadas';
 end $$;
+reset role;
+update public.app_config set premium_aberto = true;
+set role authenticated;
 
 -- Ajuste de meta
 do $$

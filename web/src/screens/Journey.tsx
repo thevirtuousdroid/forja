@@ -7,7 +7,7 @@ import { modeDef } from '../lib/rpg';
 import { Link } from 'react-router-dom';
 import { BossArt } from '../components/BossArt';
 import { addDays, formatDay, parseDay } from '../lib/dates';
-import { ErrorState, Skeleton } from '../components/ui';
+import { ErrorState, ProfileLink, Skeleton } from '../components/ui';
 import { IconShield } from '../components/Icons';
 
 const STATUS_TEXT = { completo: 'meta batida', parcial: 'parcial', vazio: 'em branco', protegido: 'protegido por escudo', hoje: 'hoje' } as const;
@@ -37,7 +37,7 @@ export function JourneyScreen() {
 
   return (
     <div className="screen">
-      <h1>Jornada</h1>
+      <div className="row between"><h1>Jornada</h1><ProfileLink /></div>
 
       <div className="grid-2">
         <Link to="/jornada/chefes" className="tile">
@@ -53,6 +53,16 @@ export function JourneyScreen() {
           <span className="small muted">Modo</span>
           <span className="num">{modeDef(today.mode ?? profile.mode).name}</span>
           <span className="small faint">regras e dificuldade</span>
+        </Link>
+        <Link to="/social/temporada" className="tile">
+          <span className="small muted">Temporada</span>
+          <span className="num">Ligas</span>
+          <span className="small faint">pontos do mês e ranking</span>
+        </Link>
+        <Link to="/mentor" className="tile">
+          <span className="small muted">Mentor</span>
+          <span className="num">{profile.mentor_enabled ? 'Análises' : 'Conhecer'}</span>
+          <span className="small faint">{(today.mentor_open ?? 0) > 0 ? `${today.mentor_open} sugest${today.mentor_open === 1 ? 'ão' : 'ões'}` : 'relatório semanal'}</span>
         </Link>
       </div>
 

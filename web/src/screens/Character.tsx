@@ -7,7 +7,7 @@ import { ATTRIBUTES, ATTRIBUTE_KEYS, attributeLevel } from '../lib/game';
 import { avatarOf, midName, modeDef, titleName } from '../lib/rpg';
 import { formatDay } from '../lib/dates';
 import { Avatar } from '../components/Avatar';
-import { Empty, Skeleton, XpBar } from '../components/ui';
+import { Empty, ProfileLink, Skeleton, XpBar } from '../components/ui';
 
 const SOURCE_LABEL: Record<string, string> = {
   meta_diaria: 'Bônus: meta do dia', retorno: 'Bônus: retorno', marco: 'Marco de sequência',
@@ -37,6 +37,8 @@ export function CharacterScreen() {
         if (r.source === 'missao') label = mission.get(r.mission_id!) ?? 'Missão';
         if (r.source === 'conquista') label = `Conquista: ${cats.achievements.find((a) => a.id === r.ref)?.name ?? ''}`;
         if (r.source === 'chefe') label = `Vitória: ${cats.bosses.find((b) => b.id === fightBoss.get(r.ref!))?.name ?? 'chefe'}`;
+        if (r.source === 'desafio') label = 'Desafio entre amigos';
+        if (r.source === 'temporada') label = 'Liga da temporada';
         return { ...r, label };
       }));
     }).catch(() => setLedger([]));
@@ -50,7 +52,7 @@ export function CharacterScreen() {
 
   return (
     <div className="screen">
-      <h1>Personagem</h1>
+      <div className="row between"><h1>Personagem</h1><ProfileLink /></div>
 
       <div className="card hero stack" style={{ alignItems: 'center', textAlign: 'center' }}>
         <Avatar config={avatar} size={176} label={`Personagem de ${profile.display_name || 'você'}`} />

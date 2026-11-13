@@ -1,11 +1,14 @@
 // Acesso ao servidor (Supabase). O app só lê tabelas; toda mudança passa por funções do banco.
 import { supabase } from './supabase';
 import type {
-  Achievement, AchievementDef, Assessment, AvatarConfig, BossDef, BossesInfo, CatalogItem, CharacterStats, CompleteResult,
-  GameEvent, Habit, Journey, LedgerAttrRow, LedgerEntry, Mission, Mode, ModeInfo, OwnedItem, Profile, ProgressionEvent, TodayInfo,
+  Achievement, AchievementDef, Assessment, AvatarConfig, Book, BossDef, BossesInfo, CatalogItem, Challenge, CharacterStats,
+  CheerKind, CodeLookup, CompleteResult, DiaryEntry, FeedPost, FriendProfile, GameEvent, GroupDetail, GroupSummary, Habit,
+  HabitTrack, Journey, LedgerAttrRow, LedgerEntry, Lite, MentorInfo, Mission, Mode, ModeInfo, NewChallenge, OwnedItem, PlanInfo,
+  PostKind, Privacy, Profile, ProgressionEvent, Ranking, RankingCategory, SeasonInfo, SocialInfo, SocialNotification, TodayInfo,
+  ToolDay, ToolHistory, ToolId, ToolSettings, ToolsOverview, WeeklyReport,
 } from './types';
 
-export { friendlyError } from './errors';
+export { friendlyError, isPremiumError } from './errors';
 
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.rpc(fn, args);
@@ -109,4 +112,73 @@ export const api = {
   // ── Avisos ──
   pendingEvents: () => rpc<GameEvent[]>('pending_events'),
   markEventsSeen: (ids: number[]) => rpc<{ marked: number }>('mark_events_seen', { p_ids: ids }),
+
+  // ── Plano ──
+  planInfo: () => rpc<PlanInfo>('get_plan_info'),
+
+  // ── Amigos, privacidade e avisos sociais ──
+  social: () => rpc<SocialInfo>('get_social'),
+  updatePrivacy: (p: Partial<Privacy>) => rpc<Privacy>('update_privacy', { p_privacy: p }),
+  resetFriendCode: () => rpc<{ friend_code: string }>('reset_friend_code'),
+  lookupCode: (code: string) => rpc<CodeLookup>('lookup_friend_code', { p_code: code }),
+  sendFriendRequest: (code: string) =>
+    rpc<{ status: 'pendente' | 'aceita'; name: string; avatar: Lite['avatar'] }>('send_friend_request', { p_code: code }),
+  respondFriendRequest: (id: string, accept: boolean) =>
+    rpc<{ status: 'aceita' | 'recusada'; user?: Lite }>('respond_friend_request', { p_id: id, p_accept: accept }),
+  removeFriend: (userId: string) => rpc<{ ok: boolean }>('remove_friend', { p_user: userId }),
+  friendProfile: (userId: string) => rpc<FriendProfile>('friend_profile', { p_user: userId }),
+  notifications: () => rpc<{ unseen: number; items: SocialNotification[] }>('get_notifications'),
+
+  // ── Feed e incentivos ──
+  feed: (before?: number) => rpc<FeedPost[]>('friends_feed', { p_before: before ?? null }),
+  sharePost: (kind: PostKind, ref: string) => rpc<{ id: number; already: boolean }>('share_post', { p_kind: kind, p_ref: ref }),
+  deletePost: (id: number) => rpc<{ ok: boolean }>('delete_post', { p_id: id }),
+  cheer: (post: number | null, user: string | null, kind: CheerKind) =>
+    rpc<{ state: CheerKind | null }>('send_cheer', { p_post: post, p_user: user, p_kind: kind }),
+
+  // ── Grupos ──
+  groups: () => rpc<GroupSummary[]>('get_groups'),
+  group: (id: string) => rpc<GroupDetail>('group_detail', { p_group: id }),
+  createGroup: (name: string, description: string) =>
+    rpc<{ id: string; invite_code: string }>('create_group', { p_name: name, p_description: description }),
+  joinGroup: (code: string) => rpc<{ id: string; name: string; already: boolean }>('join_group', { p_code: code }),
+  leaveGroup: (id: string) => rpc<{ ok: boolean }>('leave_group', { p_group: id }),
+  removeMember: (group: string, user: string) => rpc<{ ok: boolean }>('remove_group_member', { p_group: group, p_user: user }),
+  updateGroup: (id: string, name: string, description: string) =>
+    rpc<{ ok: boolean }>('update_group', { p_group: id, p_name: name, p_description: description }),
+  resetGroupCode: (id: string) => rpc<{ invite_code: string }>('reset_group_code', { p_group: id }),
+
+  // ── Desafios ──
+  challenges: () => rpc<Challenge[]>('get_challenges'),
+  challenge: (id: string) => rpc<Challenge>('challenge_detail', { p_id: id }),
+  createChallenge: (c: NewChallenge) => rpc<{ id: string }>('create_challenge', { p_data: c }),
+  respondChallenge: (id: string, accept: boolean) => rpc<{ status: string }>('respond_challenge', { p_id: id, p_accept: accept }),
+  leaveChallenge: (id: string) => rpc<{ ok: boolean }>('leave_challenge', { p_id: id }),
+  cancelChallenge: (id: string) => rpc<{ ok: boolean }>('cancel_challenge', { p_id: id }),
+
+  // ── Temporada e ranking ──
+  season: () => rpc<SeasonInfo>('get_season'),
+  ranking: (scope: 'amigos' | 'grupo', group: string | null, category: RankingCategory) =>
+    rpc<Ranking>('get_ranking', { p_scope: scope, p_group: group, p_category: category }),
+
+  // ── Ferramentas ──
+  toolsOverview: () => rpc<ToolsOverview>('tools_overview'),
+  tool: <T extends ToolId>(t: T) => rpc<ToolDay<T>>('get_tool', { p_tool: t }),
+  logTool: <T extends ToolId>(t: T, data: Record<string, unknown>) => rpc<ToolDay<T>>('log_tool', { p_tool: t, p_data: data }),
+  deleteToolLog: (id: number) => rpc<ToolDay>('delete_tool_log', { p_id: id }),
+  toolHistory: (t: ToolId, days: number) => rpc<ToolHistory>('tool_history', { p_tool: t, p_days: days }),
+  updateToolSettings: (s: Partial<ToolSettings>) => rpc<ToolSettings>('update_tool_settings', { p_settings: s }),
+  diary: (limit = 30) => rpc<DiaryEntry[]>('get_diary', { p_limit: limit }),
+  books: () => rpc<Book[]>('get_books'),
+  saveBook: (id: string | null, title: string, author: string, totalPages: number | null) =>
+    rpc<Book>('save_book', { p_id: id, p_title: title, p_author: author, p_total_pages: totalPages }),
+  setBookStatus: (id: string, status: Book['status']) => rpc<Book>('set_book_status', { p_id: id, p_status: status }),
+  habitTracker: () => rpc<HabitTrack[]>('habit_tracker'),
+
+  // ── Mentor ──
+  mentor: () => rpc<MentorInfo>('get_mentor'),
+  setMentor: (enabled: boolean) => rpc<{ enabled: boolean }>('set_mentor', { p_enabled: enabled }),
+  respondSuggestion: (id: string, accept: boolean) =>
+    rpc<{ status: 'aceita' | 'recusada'; kind: string; link?: string | null }>('respond_suggestion', { p_id: id, p_accept: accept }),
+  report: (week: string | null) => rpc<WeeklyReport>('get_report', { p_week: week }),
 };

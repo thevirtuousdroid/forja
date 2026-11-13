@@ -25,6 +25,11 @@ interface AppData {
   complete: (m: Mission) => Promise<void>;
   undo: (m: Mission) => Promise<void>;
   dismissEvents: (ids: number[]) => void;
+  /** Avisos sociais não vistos (badge da aba Social). */
+  socialUnseen: number;
+  setSocialUnseen: (n: number) => void;
+  /** Recarrega só os avisos de recompensa (ex.: depois de uma ação social que pode dar conquista). */
+  loadEvents: () => Promise<void>;
 }
 
 const Ctx = createContext<AppData | null>(null);
@@ -50,6 +55,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Set<string>>(new Set());
+  const [socialUnseen, setSocialUnseen] = useState(0);
   const tzSynced = useRef(false);
   const dismissed = useRef<Set<number>>(new Set());
 
@@ -90,6 +96,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // ensure_today pode liberar itens e mudar o avatar: relê o perfil depois dele
       const [p2, s, ms, hs] = await Promise.all([api.profile(), api.stats(), api.missionsFor(t.today), api.habits()]);
       setProfile(p2); setToday(t); setStats(s); setMissions(ms); setHabits(hs);
+      setSocialUnseen(t.social_unseen ?? 0);
       void loadEvents();
       api.catalogs().then(setCatalogs).catch(() => {});
     } catch (e) {
@@ -99,7 +106,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!signedIn) {
-      setProfile(null); setStats(null); setToday(null); setMissions([]); setHabits([]); setEvents([]);
+      setProfile(null); setStats(null); setToday(null); setMissions([]); setHabits([]); setEvents([]); setSocialUnseen(0);
       return;
     }
     setLoading(true);
@@ -163,7 +170,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{
       signedIn, authReady, userEmail, profile, stats, today, missions, habits, catalogs, events,
-      loading, error, busy, refresh, complete, undo, dismissEvents,
+      loading, error, busy, refresh, complete, undo, dismissEvents, socialUnseen, setSocialUnseen, loadEvents,
     }}>
       {children}
     </Ctx.Provider>

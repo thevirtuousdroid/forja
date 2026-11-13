@@ -7,11 +7,11 @@ import { supabase } from '../lib/supabase';
 import { COMMON_TIMEZONES } from '../lib/dates';
 import { formatTarget } from '../lib/game';
 import { useFeedback } from '../components/Feedback';
-import { Skeleton } from '../components/ui';
+import { BackButton, Skeleton } from '../components/ui';
 import { getAccent, setAccent, ACCENTS, type Accent } from '../lib/theme';
 
 export function ProfileScreen() {
-  const { profile, habits, refresh, userEmail } = useApp();
+  const { profile, habits, refresh, userEmail, today } = useApp();
   const { toast } = useFeedback();
   const [name, setName] = useState('');
   const [minDaily, setMinDaily] = useState(2);
@@ -56,9 +56,12 @@ export function ProfileScreen() {
 
   return (
     <div className="screen">
+      <BackButton />
       <div className="row between">
         <h1>Perfil</h1>
-        <span className={`pill ${profile.plan === 'premium' ? 'accent' : ''}`}>{profile.plan === 'premium' ? 'Premium' : 'Gratuito'}</span>
+        <Link to="/perfil/plano" className={`pill ${today?.premium ? 'accent' : ''}`} style={{ textDecoration: 'none' }}>
+          {today?.premium ? (profile.plan === 'premium' ? 'Premium' : 'Premium liberado') : 'Gratuito'}
+        </Link>
       </div>
       {userEmail && <span className="small faint">{userEmail}</span>}
 
@@ -112,6 +115,18 @@ export function ProfileScreen() {
       )}
 
       <div className="card stack">
+        <Link to="/perfil/plano" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Plano e Premium</span><span className="faint">›</span>
+        </Link>
+        <Link to="/social/privacidade" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Privacidade e código de amizade</span><span className="faint">›</span>
+        </Link>
+        <Link to="/mentor" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Mentor: <strong>{profile.mentor_enabled ? 'ligado' : 'desligado'}</strong></span><span className="faint">›</span>
+        </Link>
+        <Link to="/ferramentas" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Ferramentas</span><span className="faint">›</span>
+        </Link>
         <Link to="/jornada/modos" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Modo de dificuldade: <strong>{modeDef(profile.mode).name}</strong></span><span className="faint">›</span>
         </Link>
@@ -136,7 +151,7 @@ export function ProfileScreen() {
       )}
 
       <button className="btn ghost danger" onClick={() => supabase.auth.signOut()}>Sair da conta</button>
-      <span className="small faint center">Forja · versão 0.3 (Etapa 3)</span>
+      <span className="small faint center">Forja · versão 0.4 (Etapa 4)</span>
     </div>
   );
 }

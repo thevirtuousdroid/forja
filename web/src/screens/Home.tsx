@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../lib/AppData';
 import { api } from '../lib/api';
-import type { BossSummary, Journey, Mission } from '../lib/types';
+import type { BossSummary, Journey, Mission, ToolsOverview } from '../lib/types';
 import { DIMENSIONS, MILESTONES, PERIOD_ORDER, levelProgress, phaseInfo } from '../lib/game';
 import { avatarOf, modeDef, titleName } from '../lib/rpg';
 import { greeting, localDay } from '../lib/dates';
 import { Avatar } from '../components/Avatar';
 import { BossArt } from '../components/BossArt';
-import { ErrorState, MissionItem, Skeleton, XpBar } from '../components/ui';
-import { IconFlame, IconPlus, IconShield } from '../components/Icons';
+import { ErrorState, MissionItem, ProfileLink, Skeleton, XpBar } from '../components/ui';
+import { IconCompass, IconDrop, IconFlame, IconPen, IconPlus, IconShield, IconTimer } from '../components/Icons';
+import { fmtMinutes } from '../lib/tools';
+import { useFeedback } from '../components/Feedback';
+import { friendlyError } from '../lib/api';
 
 export function sortMissions(ms: Mission[]) {
   return [...ms].sort((a, b) =>
@@ -41,9 +44,25 @@ function BossCard({ boss }: { boss: BossSummary }) {
 
 export function HomeScreen() {
   const { profile, stats, today, missions, habits, busy, complete, undo, error, refresh, loading, catalogs } = useApp();
+  const { toast } = useFeedback();
   const [journey, setJourney] = useState<Journey | null>(null);
+  const [tools, setTools] = useState<ToolsOverview | null>(null);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => { api.journey().then(setJourney).catch(() => setJourney(null)); }, [missions]);
+  useEffect(() => { api.toolsOverview().then(setTools).catch(() => setTools(null)); }, [missions]);
+
+  async function addWater() {
+    setAdding(true);
+    try {
+      await api.logTool('agua', { cups: 1 });
+      setTools(await api.toolsOverview());
+    } catch (e) {
+      toast(friendlyError(e), 'error');
+    } finally {
+      setAdding(false);
+    }
+  }
 
   if (error && !today) return <div className="screen"><ErrorState message={error} onRetry={refresh} /></div>;
   if (!profile || !stats || !today) {
@@ -84,9 +103,12 @@ export function HomeScreen() {
           <span className="small muted">{greeting()}{profile.display_name ? `, ${profile.display_name}` : ''}</span>
           <h1>{inProgram ? `Dia ${today.day} de 66` : `Dia ${today.day}`}</h1>
         </div>
-        <div className="stack tight" style={{ alignItems: 'flex-end' }}>
-          <span className="pill accent">{inProgram ? `Fase ${today.phase} · ${phase.name}` : phase.name}</span>
-          {mode.id !== 'normal' && <Link to="/jornada/modos" className="pill" style={{ color: 'var(--warn)', textDecoration: 'none' }}>Modo {mode.name}</Link>}
+        <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+          <div className="stack tight" style={{ alignItems: 'flex-end' }}>
+            <span className="pill accent">{inProgram ? `Fase ${today.phase} · ${phase.name}` : phase.name}</span>
+            {mode.id !== 'normal' && <Link to="/jornada/modos" className="pill" style={{ color: 'var(--warn)', textDecoration: 'none' }}>Modo {mode.name}</Link>}
+          </div>
+          <ProfileLink />
         </div>
       </div>
 
@@ -157,6 +179,38 @@ export function HomeScreen() {
           </div>
         </>
       )}
+
+      {(today.mentor_open ?? 0) > 0 && (
+        <Link to="/mentor" className="notice">
+          <IconCompass />
+          <span className="grow"><strong>Mentor</strong> · {today.mentor_open === 1 ? '1 sugestão' : `${today.mentor_open} sugestões`} para o seu plano</span>
+          <span aria-hidden>›</span>
+        </Link>
+      )}
+
+      <div className="section-title">
+        <h2>Ferramentas</h2>
+        <Link to="/ferramentas">{tools && tools.ready > 0 ? `${tools.ready} pronta${tools.ready > 1 ? 's' : ''} ›` : 'Ver todas'}</Link>
+      </div>
+      <div className="grid-3">
+        <div className="tool-tile" style={{ padding: 12 }}>
+          <Link to="/ferramentas/agua" className="stack tight" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <span className="row small muted" style={{ gap: 4 }}><IconDrop size={16} /> Água</span>
+            <span className="num" style={{ fontWeight: 700 }}>{tools ? `${tools.summary.agua.cups}/${tools.summary.agua.goal}` : '–'}</span>
+          </Link>
+          <button className="btn sm" disabled={adding || !tools} onClick={addWater} aria-label="Adicionar um copo de água">+1</button>
+        </div>
+        <Link to="/ferramentas/foco" className="tool-tile" style={{ padding: 12 }}>
+          <span className="row small muted" style={{ gap: 4 }}><IconTimer size={16} /> Foco</span>
+          <span className="num" style={{ fontWeight: 700 }}>{tools ? fmtMinutes(tools.summary.foco.minutes) : '–'}</span>
+          <span className="small faint">iniciar timer</span>
+        </Link>
+        <Link to="/ferramentas/diario" className="tool-tile" style={{ padding: 12 }}>
+          <span className="row small muted" style={{ gap: 4 }}><IconPen size={16} /> Diário</span>
+          <span style={{ fontWeight: 700 }}>{tools?.summary.diario.written ? 'Escrito ✓' : 'Escrever'}</span>
+          <span className="small faint">humor do dia</span>
+        </Link>
+      </div>
 
       <h2 style={{ marginTop: 8 }}>Próximos objetivos</h2>
       <div className="card stack">

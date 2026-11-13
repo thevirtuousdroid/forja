@@ -39,6 +39,9 @@ function Glyph({ category, c }: { category: AchievementCategory | 'oculta'; c: s
     case 'habitos': return <g><path d="M22.5 41 L30.5 33 L34.5 37 L41.5 29.5" {...stroke} /><path d="M35.5 28.5 L42.5 28.5 L42.5 35.5" {...stroke} /></g>;
     case 'chefes': return <g><path d="M21.5 40.5 L23.5 25.5 L29 32 L32 22.5 L35 32 L40.5 25.5 L42.5 40.5 Z" fill={c} /><rect x="21.5" y="42" width="21" height="3.2" rx="1.2" fill={c} /></g>;
     case 'modos': return <path d="M34.5 19.5 L24.5 34.5 L31 34.5 L28.8 45 L39.5 29 L33 29 Z" fill={c} />;
+    case 'social': return <g><circle cx="26.5" cy="27.5" r="4.6" fill={c} /><circle cx="38" cy="27.5" r="4.6" fill={c} opacity="0.75" /><path d="M18.5 42.5 C19.5 36.5 22.5 34 26.5 34 C30.5 34 33.5 36.5 34.5 42.5 Z" fill={c} /><path d="M31.5 35.2 C33.2 34.4 35.4 34 38 34 C42 34 44.8 36.5 45.6 42.5 L36.4 42.5" fill={c} opacity="0.75" /></g>;
+    case 'temporadas': return <g><path d="M24 21 H40 V27.5 C40 32.5 36.5 35.5 32 35.5 C27.5 35.5 24 32.5 24 27.5 Z" fill={c} /><path d="M24 23.5 H20.5 C20.5 28 22 30 24.8 30.5 M40 23.5 H43.5 C43.5 28 42 30 39.2 30.5" {...stroke} strokeWidth={2.2} /><path d="M32 35.5 V40 M26.5 43.5 H37.5" {...stroke} /></g>;
+    case 'ferramentas': return <g><path d="M36.5 20.5 A6.5 6.5 0 0 0 30 29 L21.5 37.5 A2.6 2.6 0 0 0 25.2 41.2 L33.7 32.7 A6.5 6.5 0 0 0 42.2 26.2 L38.3 30.1 L35 29.4 L34.3 26.1 Z" fill={c} /></g>;
     default: return <text x="32" y="39.5" textAnchor="middle" fontSize="20" fontWeight="700" fill={c} fontFamily="Sora, sans-serif">?</text>;
   }
 }

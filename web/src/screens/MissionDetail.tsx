@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Mission } from '../lib/types';
@@ -8,6 +8,7 @@ import { formatDay, localDay, weekdayShort } from '../lib/dates';
 import { BackButton, Difficulty, ErrorState, Loading } from '../components/ui';
 import { useFeedback } from '../components/Feedback';
 import { IconClock } from '../components/Icons';
+import { TOOLS, toolForTemplate } from '../lib/tools';
 
 const STATUS_LABEL = { pendente: 'Pendente', concluida: 'Concluída', expirada: 'Expirada' } as const;
 
@@ -39,6 +40,9 @@ export function MissionDetailScreen() {
   if (!mission) return <div className="screen no-tabs"><BackButton /><Loading /></div>;
 
   const done = mission.status === 'concluida';
+  const sourceHabit = mission.habit_id ? habits.find((h) => h.id === mission.habit_id) : undefined;
+  const toolId = mission.status === 'pendente' ? toolForTemplate(sourceHabit?.template_id, mission.unit) : null;
+  const tool = toolId ? TOOLS.find((t) => t.id === toolId) : undefined;
   const canUndo = done && mission.completed_at && profile && localDay(mission.completed_at, profile.timezone) === localDay(new Date().toISOString(), profile.timezone);
 
   async function saveHabit(active: boolean) {
@@ -134,6 +138,12 @@ export function MissionDetailScreen() {
             <button className="btn sm ghost danger" disabled={saving} onClick={() => saveHabit(false)}>Pausar hábito</button>
           </div>
         </div>
+      )}
+
+      {tool && (
+        <Link to={tool.id === 'foco' ? `${tool.path}?missao=${mission.id}` : tool.path} className="btn block">
+          {tool.id === 'foco' ? 'Fazer com o timer de foco' : `Registrar em ${tool.name}`}
+        </Link>
       )}
 
       <div className="sticky-actions">

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { isConfigured, supabase } from './lib/supabase';
 import { useApp } from './lib/AppData';
 import { friendlyError } from './lib/api';
@@ -22,6 +22,20 @@ import { AchievementsScreen } from './screens/Achievements';
 import { BossDetailScreen, BossesScreen } from './screens/Bosses';
 import { ModesScreen } from './screens/Modes';
 import { RewardOverlay } from './components/RewardOverlay';
+import { SocialScreen } from './screens/Social';
+import { AddFriendScreen, FriendProfileScreen, NotificationsScreen, PrivacyScreen } from './screens/Friends';
+import { GroupDetailScreen, GroupJoinScreen } from './screens/Groups';
+import { ChallengeDetailScreen, ChallengesScreen, NewChallengeScreen } from './screens/Challenges';
+import { RankingScreen, SeasonScreen } from './screens/Season';
+import {
+  DiaryScreen, FoodScreen, HabitTrackerScreen, ReadingScreen, ScreenTimeScreen, SleepScreen, ToolsScreen, WaterScreen,
+} from './screens/Tools';
+import { FocusScreen, MeditationScreen } from './screens/Focus';
+import { MentorScreen, PlanScreen, ReportScreen } from './screens/Mentor';
+
+// Convites por link (/amigo/CODIGO, /grupo/CODIGO) abertos antes da avaliação inicial ficam guardados para depois
+const PENDING_LINK = 'forja.link';
+const INVITE = /^\/(amigo|grupo)\/[0-9A-Za-z-]{4,12}$/;
 
 function Splash() {
   return (
@@ -66,12 +80,24 @@ function NewPassword({ onDone }: { onDone: () => void }) {
   );
 }
 
-const NO_TABS = [/^\/missoes\/.+/, /^\/resultado/, /^\/personagem\/aparencia/, /^\/jornada\/chefes\/.+/];
+const NO_TABS = [/^\/missoes\/.+/, /^\/resultado/, /^\/personagem\/aparencia/, /^\/jornada\/chefes\/.+/, /^\/social\/desafios\/novo/];
 
 export function App() {
   const { signedIn, authReady, profile, error, refresh } = useApp();
   const [recovery, setRecovery] = useState(false);
   const location = useLocation();
+  const nav = useNavigate();
+
+  useEffect(() => {
+    if (!profile) return;
+    try {
+      if (!profile.onboarding_done && INVITE.test(location.pathname)) sessionStorage.setItem(PENDING_LINK, location.pathname);
+      if (profile.onboarding_done) {
+        const link = sessionStorage.getItem(PENDING_LINK);
+        if (link) { sessionStorage.removeItem(PENDING_LINK); if (link !== location.pathname) nav(link); }
+      }
+    } catch { /* sem armazenamento: o link só vale na hora */ }
+  }, [profile?.onboarding_done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') setRecovery(true); });
@@ -111,6 +137,33 @@ export function App() {
         <Route path="/personagem/atributos" element={<AttributesScreen />} />
         <Route path="/personagem/conquistas" element={<AchievementsScreen />} />
         <Route path="/perfil" element={<ProfileScreen />} />
+        <Route path="/perfil/plano" element={<PlanScreen />} />
+        <Route path="/social" element={<SocialScreen />} />
+        <Route path="/social/avisos" element={<NotificationsScreen />} />
+        <Route path="/social/adicionar" element={<AddFriendScreen />} />
+        <Route path="/amigo/:code" element={<AddFriendScreen />} />
+        <Route path="/social/amigos/:id" element={<FriendProfileScreen />} />
+        <Route path="/social/privacidade" element={<PrivacyScreen />} />
+        <Route path="/social/grupos/:id" element={<GroupDetailScreen />} />
+        <Route path="/grupo/:code" element={<GroupJoinScreen />} />
+        <Route path="/social/desafios" element={<ChallengesScreen />} />
+        <Route path="/social/desafios/novo" element={<NewChallengeScreen />} />
+        <Route path="/social/desafios/:id" element={<ChallengeDetailScreen />} />
+        <Route path="/social/temporada" element={<SeasonScreen />} />
+        <Route path="/social/ranking" element={<RankingScreen />} />
+        <Route path="/ferramentas" element={<ToolsScreen />} />
+        <Route path="/ferramentas/foco" element={<FocusScreen />} />
+        <Route path="/ferramentas/agua" element={<WaterScreen />} />
+        <Route path="/ferramentas/sono" element={<SleepScreen />} />
+        <Route path="/ferramentas/alimentacao" element={<FoodScreen />} />
+        <Route path="/ferramentas/leitura" element={<ReadingScreen />} />
+        <Route path="/ferramentas/meditacao" element={<MeditationScreen />} />
+        <Route path="/ferramentas/tela" element={<ScreenTimeScreen />} />
+        <Route path="/ferramentas/diario" element={<DiaryScreen />} />
+        <Route path="/ferramentas/habitos" element={<HabitTrackerScreen />} />
+        <Route path="/mentor" element={<MentorScreen />} />
+        <Route path="/mentor/relatorio" element={<ReportScreen />} />
+        <Route path="/mentor/relatorio/:week" element={<ReportScreen />} />
         <Route path="/resultado" element={<ResultScreen />} />
         <Route path="/avaliacao/resultado" element={<ResultScreen revisit />} />
         <Route path="/avaliacao" element={<Navigate to="/resultado" replace />} />

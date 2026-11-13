@@ -109,6 +109,9 @@ export const ACHIEVEMENT_CATEGORIES: { id: AchievementCategory; label: string }[
   { id: 'nivel', label: 'Nível' },
   { id: 'chefes', label: 'Chefes' },
   { id: 'modos', label: 'Modos' },
+  { id: 'social', label: 'Social' },
+  { id: 'temporadas', label: 'Temporadas' },
+  { id: 'ferramentas', label: 'Ferramentas' },
 ];
 
 // ── Modos ───────────────────────────────────────────────────────────────────

@@ -114,7 +114,8 @@ begin
   assert (public.mark_events_seen(ids)->>'marked')::int = 0;
 
   ach := public.get_achievements();
-  assert jsonb_array_length(ach->'items') = 44, format('44 conquistas (%s)', jsonb_array_length(ach->'items'));
+  assert jsonb_array_length(ach->'items') = (select count(*) from public.achievement_catalog) and jsonb_array_length(ach->'items') >= 44,
+    format('todas as conquistas (%s)', jsonb_array_length(ach->'items'));
   assert exists (select 1 from jsonb_array_elements(ach->'items') a where a->>'id' = 'm_1' and a->>'unlocked_at' is not null);
   assert exists (select 1 from jsonb_array_elements(ach->'items') a where a->>'id' = 'm_25' and (a->>'current')::int = 1 and a->>'unlocked_at' is null);
   assert exists (select 1 from jsonb_array_elements(ach->'items') a where a->>'id' = 'h_fenix'
