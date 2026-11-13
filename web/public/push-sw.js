@@ -13,6 +13,12 @@ self.addEventListener('push', (event) => {
   } catch (e) {
     data = { body: event.data ? event.data.text() : '' };
   }
+  // O iPhone já mostra o nome do app em toda notificação. Se o título for só "Forja",
+  // a primeira frase do texto vira o título, para não repetir.
+  if (!data.title || data.title === 'Forja') {
+    const m = /^(.+?[.!?])\s+(.+)$/.exec(data.body || '');
+    if (m) { data.title = m[1].replace(/[.!]$/, ''); data.body = m[2]; }
+  }
   const options = {
     body: data.body || '',
     icon: '/icon-192.png',

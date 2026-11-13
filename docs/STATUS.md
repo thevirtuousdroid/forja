@@ -8,8 +8,8 @@ _Atualizado em 13/11/2026._
 | 2 · MVP | ✅ no ar |
 | 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
 | 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações no ar (banco com `0006_notificacoes.sql`) |
-| 5 · Premium | estrutura pronta (Premium liberado para todos por tempo limitado) |
-| 6 · Testes com amigos e lançamento | |
+| 5 · Premium | ✅ estrutura no ar (Premium liberado para todos; falta só o administrador decidir a data de fim) |
+| 6 · Testes com amigos e lançamento | em andamento: reavaliação do dia 61 no ar (versão 0.5); próximos ajustes vêm do uso real |
 
 ## Etapa 4 · Sistemas avançados
 
@@ -30,6 +30,7 @@ _Atualizado em 13/11/2026._
 | Mentor | Só com consentimento. Análises (constância, tendência, horário, áreas, dias da semana, sono, água, humor nos dias com meditação), sugestões que só mudam algo com aceite (baixar meta, pausar hábito, mudar a meta diária, modo Desafio, chefe disponível, descanso), relatório semanal toda segunda e "esta semana até agora". Sem diagnósticos; do diário usa só o número do humor. |
 | Conquistas e títulos | 14 conquistas novas (social, temporadas, ferramentas), total de 58, e 4 títulos novos. |
 | Navegação | Abas Início · Missões · Social · Jornada · Personagem; Perfil pela engrenagem. Atalhos de água, foco e diário no Início; Mentor e temporada na Jornada. |
+| Reavaliação | Do dia 61 em diante, convite no Início para responder de novo o questionário. Tela de antes e depois, área por área, com a média, o maior avanço e as áreas que caíram. Não altera o plano. |
 | Conta de teste | `supabase/admin/conta_de_teste.sql` cria uma conta veterana com tudo liberado, bots, grupo, desafios, temporadas, ferramentas e Mentor. |
 | Notificações | Web Push no celular (no iPhone, com o app na tela de início, iOS 16.4+). Lembrete da meta no horário escolhido (só se a meta ainda não foi cumprida; na fase Domínio, só se a meta de ontem também falhou), aviso de sequência em risco à noite e avisos sociais na hora (pedido, amizade aceita, convite, incentivo, entrada no grupo). Tela para ativar, escolher horários, enviar teste e desligar; convite discreto no Início; tocar na notificação abre a tela certa. |
 
@@ -53,9 +54,7 @@ _Atualizado em 13/11/2026._
 
 ### Pendente
 
-- Confirmar as notificações num iPhone de verdade (o primeiro "Enviar teste").
 - Decidir se o Mentor ganha uma camada de IA generativa (tem custo por uso).
-- Reavaliação no dia 66 (a tela ainda não oferece refazer o questionário).
 
 ## Etapa 3 · Gamificação
 

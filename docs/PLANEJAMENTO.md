@@ -361,5 +361,5 @@ O plano fica em `profiles.plan` e só muda por função administrativa (`admin_s
 | 2 | MVP: cadastro, onboarding, avaliação, programa de 66 dias, missões, XP, níveis, atributos, sequências, dashboard | ✅ |
 | 3 | Personagem visual, inventário, conquistas, chefes, modos de dificuldade | ✅ |
 | 4 | Amigos, grupos, ranking, temporadas, ferramentas (foco, água, sono, leitura, diário), Mentor, relatório semanal, Premium liberado para todos, notificações | ✅ |
-| 5 | Premium: decidir quais recursos são pagos (estrutura administrativa no servidor); pagamentos só se virar produto | |
+| 5 | Premium: decidir quais recursos são pagos (estrutura administrativa no servidor); pagamentos só se virar produto | ✅ |
 | 6 | Testes de usabilidade com amigos, ajustes, publicação | |

@@ -54,6 +54,8 @@ export const api = {
   profile: () => rows<Profile>(supabase.from('profiles').select('*').single()),
   stats: () => rows<CharacterStats>(supabase.from('character_stats').select('*').single()),
   habits: () => rows<Habit[]>(supabase.from('user_habits').select('*').order('start_day').order('created_at')),
+  assessments: () =>
+    rows<Assessment[]>(supabase.from('assessments').select('*').order('created_at', { ascending: true })),
   latestAssessment: () =>
     rows<Assessment[]>(supabase.from('assessments').select('*').order('created_at', { ascending: false }).limit(1))
       .then((r) => r[0] ?? null),

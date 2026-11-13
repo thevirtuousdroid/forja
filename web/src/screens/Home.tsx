@@ -14,6 +14,7 @@ import { fmtMinutes } from '../lib/tools';
 import { useFeedback } from '../components/Feedback';
 import { friendlyError } from '../lib/api';
 import { PushPrompt } from './Push';
+import { ReassessCard } from './Reassess';
 
 export function sortMissions(ms: Mission[]) {
   return [...ms].sort((a, b) =>
@@ -182,6 +183,7 @@ export function HomeScreen() {
       )}
 
       <PushPrompt />
+      <ReassessCard day={today.day} />
 
       {(today.mentor_open ?? 0) > 0 && (
         <Link to="/mentor" className="notice">

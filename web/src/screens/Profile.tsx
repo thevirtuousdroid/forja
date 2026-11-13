@@ -140,6 +140,9 @@ export function ProfileScreen() {
         <Link to="/avaliacao/resultado" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Minha avaliação e plano</span><span className="faint">›</span>
         </Link>
+        <Link to="/reavaliacao/resultado" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Reavaliação: antes e depois</span><span className="faint">›</span>
+        </Link>
       </div>
 
       {!standalone && (
@@ -157,7 +160,7 @@ export function ProfileScreen() {
       <button className="btn ghost danger" onClick={async () => { await disablePush().catch(() => {}); await supabase.auth.signOut(); }}>
         Sair da conta
       </button>
-      <span className="small faint center">Forja · versão 0.4.1 (Etapa 4)</span>
+      <span className="small faint center">Forja · versão 0.5</span>
     </div>
   );
 }

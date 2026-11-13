@@ -8,6 +8,7 @@ import { Emblem } from './components/Emblem';
 import { AuthScreen } from './screens/Auth';
 import { QuestionnaireScreen, WelcomeScreen } from './screens/Onboarding';
 import { ResultScreen } from './screens/Result';
+import { ReassessResultScreen } from './screens/Reassess';
 import { HomeScreen } from './screens/Home';
 import { MissionsScreen } from './screens/Missions';
 import { MissionDetailScreen } from './screens/MissionDetail';
@@ -179,6 +180,8 @@ export function App() {
         <Route path="/mentor/relatorio/:week" element={<ReportScreen />} />
         <Route path="/resultado" element={<ResultScreen />} />
         <Route path="/avaliacao/resultado" element={<ResultScreen revisit />} />
+        <Route path="/reavaliacao" element={<QuestionnaireScreen reassess />} />
+        <Route path="/reavaliacao/resultado" element={<ReassessResultScreen />} />
         <Route path="/avaliacao" element={<Navigate to="/resultado" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

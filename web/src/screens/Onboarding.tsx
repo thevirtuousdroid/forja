@@ -45,22 +45,34 @@ export function WelcomeScreen() {
 
 const DRAFT_KEY = 'forja.avaliacao.rascunho';
 
-export function QuestionnaireScreen() {
+/** `reassess`: a reavaliação do fim do programa. As mesmas perguntas, sem mexer no plano. */
+export function QuestionnaireScreen({ reassess = false }: { reassess?: boolean }) {
   const nav = useNavigate();
   const { refresh, profile } = useApp();
+  const draftKey = reassess ? DRAFT_KEY + '.2' : DRAFT_KEY;
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => {
     let draft: Record<string, unknown> = {};
-    try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}'); } catch { /* sem rascunho */ }
+    try { draft = JSON.parse(localStorage.getItem(draftKey) ?? '{}'); } catch { /* sem rascunho */ }
     if (!draft.display_name && profile?.display_name) draft.display_name = profile.display_name;
     return draft;
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Na reavaliação, objetivo e tempo por dia já vêm da primeira vez (dá para mudar)
   useEffect(() => {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(answers)); } catch { /* armazenamento indisponível */ }
-  }, [answers]);
+    if (!reassess) return;
+    api.assessments().then((list) => {
+      const first = list[0]?.answers;
+      if (!first) return;
+      setAnswers((a) => ({ main_goal: first.main_goal, daily_minutes: first.daily_minutes, ...a }));
+    }).catch(() => {});
+  }, [reassess]);
+
+  useEffect(() => {
+    try { localStorage.setItem(draftKey, JSON.stringify(answers)); } catch { /* armazenamento indisponível */ }
+  }, [answers, draftKey]);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [step]);
 
   const s = STEPS[step];
@@ -79,9 +91,9 @@ export function QuestionnaireScreen() {
     setBusy(true); setError(null);
     try {
       await api.submitAssessment(answers);
-      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignora */ }
+      try { localStorage.removeItem(draftKey); } catch { /* ignora */ }
       await refresh();
-      nav('/resultado', { replace: true });
+      nav(reassess ? '/reavaliacao/resultado' : '/resultado', { replace: true });
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -94,6 +106,8 @@ export function QuestionnaireScreen() {
       <div className="row between">
         {step > 0 ? (
           <button className="back" onClick={() => setStep(step - 1)}><IconChevronLeft /> Voltar</button>
+        ) : reassess ? (
+          <button className="back" onClick={() => nav(-1)}><IconChevronLeft /> Sair</button>
         ) : <span />}
         <span className="small faint num">{step + 1} de {STEPS.length}</span>
       </div>
@@ -133,7 +147,7 @@ export function QuestionnaireScreen() {
 
       <div className="sticky-actions">
         <button className="btn primary block" disabled={!complete || busy} onClick={() => (last ? finish() : setStep(step + 1))}>
-          {busy ? 'Montando seu plano…' : last ? 'Ver meu resultado' : 'Continuar'}
+          {busy ? (reassess ? 'Comparando…' : 'Montando seu plano…') : last ? (reassess ? 'Ver o quanto mudei' : 'Ver meu resultado') : 'Continuar'}
         </button>
       </div>
     </div>

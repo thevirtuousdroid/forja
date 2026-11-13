@@ -16,7 +16,7 @@ export function ResultScreen({ revisit = false }: { revisit?: boolean }) {
 
   const load = () => {
     setError(null);
-    api.latestAssessment().then(setAssessment).catch((e) => setError(friendlyError(e)));
+    api.assessments().then((l) => setAssessment(l[0] ?? null)).catch((e) => setError(friendlyError(e)));
   };
   useEffect(load, []);
 
