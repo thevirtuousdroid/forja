@@ -7,7 +7,7 @@ _Atualizado em 13/11/2026._
 | 1 · Planejamento | ✅ `docs/PLANEJAMENTO.md` |
 | 2 · MVP | ✅ no ar |
 | 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
-| 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações prontas no ramo `notificacoes`, entram no ar depois de aplicar `0006_notificacoes.sql` |
+| 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações no ar (banco com `0006_notificacoes.sql`) |
 | 5 · Premium | estrutura pronta (Premium liberado para todos por tempo limitado) |
 | 6 · Testes com amigos e lançamento | |
 
@@ -53,7 +53,7 @@ _Atualizado em 13/11/2026._
 
 ### Pendente
 
-- Instalar as notificações no Supabase (`0006_notificacoes.sql`) e publicar o ramo `notificacoes`.
+- Confirmar as notificações num iPhone de verdade (o primeiro "Enviar teste").
 - Decidir se o Mentor ganha uma camada de IA generativa (tem custo por uso).
 - Reavaliação no dia 66 (a tela ainda não oferece refazer o questionário).
 
