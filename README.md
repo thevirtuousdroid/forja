@@ -73,6 +73,20 @@ Quando sai uma etapa nova, o banco recebe uma migração nova em `supabase/migra
 Rode **só a migração nova** no **SQL Editor**, do mesmo jeito do passo 1. As migrações podem ser rodadas de novo sem estragar nada,
 e o progresso de quem já usa o app é mantido. Não rode o `forja_completo.sql` num banco que já está em uso: ele é para projetos novos.
 
+### 7. Conta de teste com tudo liberado
+
+Para testar o app inteiro sem esperar semanas, `supabase/admin/conta_de_teste.sql` transforma uma conta numa conta veterana:
+70 dias de histórico, programa de 66 dias concluído, todos os modos liberados, chefes vencidos e uma revanche em andamento,
+todas as conquistas, equipamentos e títulos, e Premium. Com a Etapa 4 instalada, também cria amigos de teste (bots), grupo,
+desafios, temporadas passadas, registros nas ferramentas e o Mentor com relatórios.
+
+1. **Authentication → Users → Add user → Create new user**: um e-mail só para testes, com **Auto Confirm User** marcado.
+2. No **SQL Editor**, cole o arquivo, troque o e-mail na linha indicada e clique **Run**. Leva poucos segundos.
+3. Entre no app com esse e-mail e senha.
+
+O script apaga e refaz o progresso da conta indicada (rodar de novo "reseta" a conta) e recusa contas que já têm progresso de verdade.
+No fim do arquivo há as linhas para apagar a conta de teste e os bots.
+
 ---
 
 ## Testes
