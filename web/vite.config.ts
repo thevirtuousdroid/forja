@@ -27,8 +27,12 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // A função de envio das notificações não é uma página do app
+        navigateFallbackDenylist: [/^\/api\//],
         // Dados do Supabase nunca são servidos do cache
         runtimeCaching: [],
+        // Notificações: mostrar o push e abrir a tela certa ao tocar (public/push-sw.js)
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

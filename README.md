@@ -90,7 +90,7 @@ select * from premium_features order by sort; -- lista o que é premium hoje
 
 ### 6. Atualizar um banco que já está em uso
 
-Quando sai uma etapa nova, o banco recebe uma migração nova em `supabase/migrations/` (a da Etapa 4 é `0005_etapa4.sql`).
+Quando sai uma etapa nova, o banco recebe uma migração nova em `supabase/migrations/` (a da Etapa 4 é `0005_etapa4.sql`; a das notificações, `0006_notificacoes.sql`).
 Rode **só a migração nova** no **SQL Editor**, do mesmo jeito do passo 1. As migrações podem ser rodadas de novo sem estragar nada,
 e o progresso de quem já usa o app é mantido. Não rode o `forja_completo.sql` num banco que já está em uso: ele é para projetos novos.
 
@@ -108,6 +108,25 @@ desafios, temporadas passadas, registros nas ferramentas e o Mentor com relatór
 O script apaga e refaz o progresso da conta indicada (rodar de novo "reseta" a conta) e recusa contas que já têm progresso de verdade.
 No fim do arquivo há as linhas para apagar a conta de teste e os bots.
 
+### 8. Notificações no celular
+
+Lembrete da meta do dia, aviso de sequência em risco e avisos dos amigos, pelo Web Push. No iPhone, funcionam com o app
+instalado na tela de início (iOS 16.4 ou mais novo); cada pessoa ativa em **Perfil → Notificações e lembretes**.
+
+Como funciona: a cada minuto o banco confere os horários (extensão **pg_cron**); quando há algo para enviar, ele chama a
+função `/api/push` do app (extensão **pg_net**) só com um código de uso único. A função busca o lote, envia e devolve o
+resultado. As chaves de envio (VAPID) são geradas pela própria função na primeira vez e ficam só no banco.
+**Não há chave para copiar**: a função usa as mesmas variáveis do app na Vercel.
+
+Para ligar (uma vez), depois de rodar a migração `0006_notificacoes.sql` (ela ativa o pg_cron e o pg_net), informe o endereço do app:
+
+```sql
+select admin_set_push_url('https://seu-app.vercel.app');
+```
+
+Para conferir: `select * from push_subscriptions;` mostra os aparelhos inscritos e o resultado da última entrega de cada um.
+A função `/api/push` existe só na Vercel; na Netlify o resto do app funciona, mas sem notificações.
+
 ---
 
 ## Testes
@@ -121,3 +140,4 @@ O teste do banco sobe um Postgres temporário, aplica as migrações e verifica:
 - **MVP:** fórmulas, avaliação, plano de 66 dias, bloqueio de escrita direta, conclusão duplicada, bônus, desfazer, limites, isolamento entre usuários e uma simulação de 30 dias.
 - **Etapa 3:** itens e avatar, títulos, conquistas e avisos, chefes (bloqueios, golpes, desfazer, vitória, revanche, recuo e cura), modos de dificuldade (requisitos, meta, escudos, XP, histórico de regras e rebaixamento) e as travas do modo Extremo.
 - **Etapa 4:** Premium liberado e encerrado, amigos e privacidade, feed e incentivos, grupos, desafios competitivos e coletivos, temporadas e ligas, ranking, as 9 ferramentas, o Mentor e o relatório semanal, além do script da conta de teste.
+- **Notificações:** chaves, inscrições, avisos sociais, lotes e novas tentativas, lembretes e permissões (no banco); a função de envio tem testes próprios em `web/server/push.test.js`.

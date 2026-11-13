@@ -32,6 +32,7 @@ import {
 } from './screens/Tools';
 import { FocusScreen, MeditationScreen } from './screens/Focus';
 import { MentorScreen, PlanScreen, ReportScreen } from './screens/Mentor';
+import { PushSettingsScreen } from './screens/Push';
 
 // Convites por link (/amigo/CODIGO, /grupo/CODIGO) abertos antes da avaliação inicial ficam guardados para depois
 const PENDING_LINK = 'forja.link';
@@ -104,6 +105,17 @@ export function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // Toque numa notificação com o app aberto: o service worker pede para ir à tela certa
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const onMessage = (e: MessageEvent) => {
+      const path = e.data?.type === 'forja:abrir' ? e.data.path : null;
+      if (typeof path === 'string' && path.startsWith('/') && !path.startsWith('//')) nav(path);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [nav]);
+
   if (!isConfigured) return <NotConfigured />;
   if (!authReady) return <Splash />;
   if (!signedIn) return <AuthScreen />;
@@ -138,6 +150,7 @@ export function App() {
         <Route path="/personagem/conquistas" element={<AchievementsScreen />} />
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/perfil/plano" element={<PlanScreen />} />
+        <Route path="/perfil/notificacoes" element={<PushSettingsScreen />} />
         <Route path="/social" element={<SocialScreen />} />
         <Route path="/social/avisos" element={<NotificationsScreen />} />
         <Route path="/social/adicionar" element={<AddFriendScreen />} />

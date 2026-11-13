@@ -1,13 +1,13 @@
 # Status do desenvolvimento
 
-_Atualizado em 12/11/2026._
+_Atualizado em 13/11/2026._
 
 | Etapa | Situação |
 |---|---|
 | 1 · Planejamento | ✅ `docs/PLANEJAMENTO.md` |
 | 2 · MVP | ✅ no ar |
 | 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
-| 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco atualizado com `0005_etapa4.sql`); faltam as notificações |
+| 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações prontas no ramo `notificacoes`, entram no ar depois de aplicar `0006_notificacoes.sql` |
 | 5 · Premium | estrutura pronta (Premium liberado para todos por tempo limitado) |
 | 6 · Testes com amigos e lançamento | |
 
@@ -31,12 +31,14 @@ _Atualizado em 12/11/2026._
 | Conquistas e títulos | 14 conquistas novas (social, temporadas, ferramentas), total de 58, e 4 títulos novos. |
 | Navegação | Abas Início · Missões · Social · Jornada · Personagem; Perfil pela engrenagem. Atalhos de água, foco e diário no Início; Mentor e temporada na Jornada. |
 | Conta de teste | `supabase/admin/conta_de_teste.sql` cria uma conta veterana com tudo liberado, bots, grupo, desafios, temporadas, ferramentas e Mentor. |
+| Notificações | Web Push no celular (no iPhone, com o app na tela de início, iOS 16.4+). Lembrete da meta no horário escolhido (só se a meta ainda não foi cumprida; na fase Domínio, só se a meta de ontem também falhou), aviso de sequência em risco à noite e avisos sociais na hora (pedido, amizade aceita, convite, incentivo, entrada no grupo). Tela para ativar, escolher horários, enviar teste e desligar; convite discreto no Início; tocar na notificação abre a tela certa. |
 
 ### Testado
 
 - **Banco:** suítes do MVP, da Etapa 3, do social e temporadas (Premium aberto e fechado, pedidos, privacidade, feed, grupos, desafios no tempo, temporadas e ranking), das ferramentas e do Mentor, e do script da conta de teste. Todas passando.
 - **Atualização:** a migração foi aplicada num banco com pessoas usando o app, duas vezes seguidas, sem erro e sem publicar nada retroativo.
-- **App:** 41 testes, verificação de tipos e build.
+- **App:** 45 testes (inclui a função de envio: chaves, criptografia que só o aparelho abre, assinatura VAPID e resultados), verificação de tipos e build.
+- **Notificações:** testes do banco (configuração, chaves geradas uma vez, inscrições, aviso social do começo ao fim, novas tentativas, lote sem resposta, vencidos, preferências, incentivos agrupados, lembretes, fase Domínio e permissões); integração banco → função → aparelho simulado com decifragem (14 verificações); no navegador com o service worker de verdade (18 verificações: convite, ativar, horários, teste, push mostrado, toque abrindo a tela, desligar, iPhone sem instalar e bloqueado); atualização da 0006 sobre banco em uso, duas vezes.
 - **Ponta a ponta:** no navegador, em tamanho de iPhone, contra o banco local com as permissões reais: 33 telas sem nenhum erro e 11 ações completas (aceitar pedido, aceitar convite de desafio, reagir, mandar incentivo, água até concluir a missão, diário, aceitar sugestão do Mentor, criar desafio, criar grupo, golpe final num chefe, sessão de foco), mais as telas de resultado de desafio, fim de temporada e relatório.
 
 ### Decisões
@@ -47,10 +49,11 @@ _Atualizado em 12/11/2026._
 - **Mentor por regras no servidor**, sem IA generativa por enquanto (precisaria de uma chave de API paga).
 - **As ferramentas registram, a pessoa conclui:** nenhuma missão é concluída sozinha.
 - **Temporadas contam a partir do mês em que a atualização é instalada.**
+- **Notificações sem chave para configurar:** o banco decide o que enviar e chama a função `/api/push` do app com um código de uso único; a função gera as chaves VAPID na primeira vez e elas ficam só no banco. A função usa as mesmas variáveis que o app já tem na Vercel.
 
 ### Pendente
 
-- Notificações e lembretes (precisam de chaves configuradas na Vercel).
+- Instalar as notificações no Supabase (`0006_notificacoes.sql`) e publicar o ramo `notificacoes`.
 - Decidir se o Mentor ganha uma camada de IA generativa (tem custo por uso).
 - Reavaliação no dia 66 (a tela ainda não oferece refazer o questionário).
 

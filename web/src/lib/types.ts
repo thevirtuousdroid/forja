@@ -561,3 +561,24 @@ export interface MentorInfo {
   mode?: Mode; insights?: MentorInsight[]; suggestions?: MentorSuggestion[];
   this_week?: WeeklyReport | null; reports?: { week_start: string; missions: number; goal_days: number }[];
 }
+
+// ── Notificações ────────────────────────────────────────────────────────────
+
+export interface NotifySettings {
+  lembrete: boolean; lembrete_hora: string;   // "09:00"
+  risco: boolean; risco_hora: string;
+  social: boolean;
+}
+export interface PushDevice {
+  id: string; endpoint: string; device: string; created_at: string;
+  last_ok_at: string | null; last_status: number | null; last_error: string | null;
+}
+export interface NotifyInfo {
+  /** O administrador já informou o endereço do app no banco. */
+  configured: boolean;
+  /** As chaves de envio já existem (a tela pede na primeira abertura). */
+  ready: boolean;
+  public_key: string | null;
+  settings: NotifySettings;
+  devices: PushDevice[];
+}

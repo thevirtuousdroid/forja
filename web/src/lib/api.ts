@@ -3,7 +3,8 @@ import { supabase } from './supabase';
 import type {
   Achievement, AchievementDef, Assessment, AvatarConfig, Book, BossDef, BossesInfo, CatalogItem, Challenge, CharacterStats,
   CheerKind, CodeLookup, CompleteResult, DiaryEntry, FeedPost, FriendProfile, GameEvent, GroupDetail, GroupSummary, Habit,
-  HabitTrack, Journey, LedgerAttrRow, LedgerEntry, Lite, MentorInfo, Mission, Mode, ModeInfo, NewChallenge, OwnedItem, PlanInfo,
+  HabitTrack, Journey, LedgerAttrRow, LedgerEntry, Lite, MentorInfo, Mission, Mode, ModeInfo, NewChallenge, NotifyInfo,
+  NotifySettings, OwnedItem, PlanInfo,
   PostKind, Privacy, Profile, ProgressionEvent, Ranking, RankingCategory, SeasonInfo, SocialInfo, SocialNotification, TodayInfo,
   ToolDay, ToolHistory, ToolId, ToolSettings, ToolsOverview, WeeklyReport,
 } from './types';
@@ -181,4 +182,12 @@ export const api = {
   respondSuggestion: (id: string, accept: boolean) =>
     rpc<{ status: 'aceita' | 'recusada'; kind: string; link?: string | null }>('respond_suggestion', { p_id: id, p_accept: accept }),
   report: (week: string | null) => rpc<WeeklyReport>('get_report', { p_week: week }),
+
+  // ── Notificações ──
+  notify: () => rpc<NotifyInfo>('get_notify'),
+  setNotify: (s: Partial<NotifySettings>) => rpc<NotifySettings>('set_notify', { p_settings: s }),
+  savePushSubscription: (endpoint: string, p256dh: string, auth: string, device: string) =>
+    rpc<{ devices: number }>('save_push_subscription', { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth, p_device: device }),
+  removePushSubscription: (endpoint: string) => rpc<{ devices: number }>('remove_push_subscription', { p_endpoint: endpoint }),
+  pushTest: () => rpc<{ devices: number }>('push_test'),
 };

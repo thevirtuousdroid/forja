@@ -9,6 +9,7 @@ import { formatTarget } from '../lib/game';
 import { useFeedback } from '../components/Feedback';
 import { BackButton, Skeleton } from '../components/ui';
 import { getAccent, setAccent, ACCENTS, type Accent } from '../lib/theme';
+import { disablePush } from '../lib/push';
 
 export function ProfileScreen() {
   const { profile, habits, refresh, userEmail, today } = useApp();
@@ -115,6 +116,9 @@ export function ProfileScreen() {
       )}
 
       <div className="card stack">
+        <Link to="/perfil/notificacoes" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Notificações e lembretes</span><span className="faint">›</span>
+        </Link>
         <Link to="/perfil/plano" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Plano e Premium</span><span className="faint">›</span>
         </Link>
@@ -150,8 +154,10 @@ export function ProfileScreen() {
         </div>
       )}
 
-      <button className="btn ghost danger" onClick={() => supabase.auth.signOut()}>Sair da conta</button>
-      <span className="small faint center">Forja · versão 0.4 (Etapa 4)</span>
+      <button className="btn ghost danger" onClick={async () => { await disablePush().catch(() => {}); await supabase.auth.signOut(); }}>
+        Sair da conta
+      </button>
+      <span className="small faint center">Forja · versão 0.4.1 (Etapa 4)</span>
     </div>
   );
 }

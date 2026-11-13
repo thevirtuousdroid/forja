@@ -5,6 +5,7 @@ import type { CharacterStats, GameEvent, Habit, Mission, Profile, TodayInfo } fr
 import { useFeedback } from '../components/Feedback';
 import { browserTimezone } from './dates';
 import { inName } from './rpg';
+import { syncPush } from './push';
 
 interface AppData {
   signedIn: boolean;
@@ -98,6 +99,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setProfile(p2); setToday(t); setStats(s); setMissions(ms); setHabits(hs);
       setSocialUnseen(t.social_unseen ?? 0);
       void loadEvents();
+      void syncPush(p2.id);
       api.catalogs().then(setCatalogs).catch(() => {});
     } catch (e) {
       setError(friendlyError(e));

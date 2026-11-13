@@ -79,6 +79,15 @@ const MESSAGES: Record<string, string> = {
   limite_livros: 'Você chegou ao limite de livros cadastrados.',
   sugestao_nao_encontrada: 'Essa sugestão não está mais disponível.',
   relatorio_nao_encontrado: 'Ainda não há relatório semanal. Ele fica pronto na segunda-feira.',
+  // Notificações
+  inscricao_invalida: 'Este aparelho não conseguiu se inscrever para receber notificações. Tente de novo.',
+  push_sem_aparelho: 'Ative as notificações neste aparelho primeiro.',
+  push_espere: 'Espere alguns segundos antes de mandar outro teste.',
+  configuracao_invalida: 'Não foi possível salvar essa opção.',
+  horario_invalido: 'Escolha um horário entre 05:00 e 23:30.',
+  push_negado: 'As notificações foram bloqueadas neste aparelho.',
+  push_ignorado: 'A permissão não foi dada. Toque de novo em Ativar quando quiser.',
+  push_sem_sw: 'O app ainda está carregando. Feche, abra de novo e tente outra vez.',
 };
 
 // Códigos mais longos primeiro: "limite_grupos_criados" não pode cair em "limite_grupos"

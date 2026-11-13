@@ -42,6 +42,9 @@ declare
   v_group uuid; v_ch uuid; v_req uuid; v_post bigint; v_book1 uuid; v_book2 uuid; v_s int; v_sp jsonb; v_lg record;
   v_rank int; v_of int; v_pts int; i int; k int; v_rate int; v_goal int;
 begin
+  -- Nada do que este script cria vira notificação no celular
+  perform set_config('forja.sem_push', 'on', true);
+
   -- ── 1. A conta ────────────────────────────────────────────────────────────
   select id into v_uid from auth.users where lower(email) = lower(trim(v_email));
   if v_uid is null then

@@ -27,8 +27,12 @@ O programa de 66 dias é uma **estrutura de acompanhamento**, não uma promessa 
 │  React + TypeScript      │   supabase-js         │  • Auth (e-mail e senha)          │
 │  Vite, React Router      │   (chave pública)     │  • PostgreSQL + RLS               │
 │  Service worker (offline │                       │  • Funções RPC (regras de jogo)   │
-│  do shell, cache)        │ ◀───────────────────  │  • Edge Functions (IA, Etapa 4)   │
-└──────────────────────────┘                       └──────────────────────────────────┘
+│  do shell, cache, push)  │ ◀───────────────────  │  • pg_cron + pg_net (notificações)│
+└────────────▲─────────────┘                       └───────────────┬──────────────────┘
+             │ Web Push (Apple, Google, Mozilla)                   │ código de lote
+┌────────────┴─────────────────────────────────────────────────────▼───────────────────┐
+│  Vercel · /api/push: pega o lote no banco, envia criptografado e devolve o resultado │
+└──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Princípio central: o servidor é a autoridade do jogo.** O app nunca grava XP, nível, atributos ou status de missão diretamente. Ele chama funções RPC no banco (`complete_mission`, `ensure_today`, `submit_assessment`…), que validam, calculam e registram tudo numa transação. As políticas de RLS só permitem que cada usuário **leia** os próprios dados; escrita direta nas tabelas de progresso é negada.
@@ -289,6 +293,22 @@ A ferramenta mostra a missão como "pronta", mas **quem conclui é a pessoa**. A
 - **Sugestões**, que só mudam algo quando a pessoa aceita: baixar a meta de um hábito pesado, pausar um hábito esquecido, mudar a meta diária, experimentar o modo Desafio, enfrentar um chefe disponível e lembrar de descansar. São reavaliadas uma vez por dia. Uma sugestão recusada não volta por 14 dias.
 - **Relatório semanal** (segunda a domingo), criado na primeira abertura da semana seguinte, com missões, dias com meta, XP, áreas, melhor dia, conquistas, chefes e ferramentas. Também há a visão de "esta semana até agora".
 
+### 4.19 Notificações
+
+Web Push. No iPhone, só com o app na tela de início (iOS 16.4 ou mais novo); a permissão é pedida quando a pessoa toca em **Ativar**.
+
+| Notificação | Quando | Texto |
+|---|---|---|
+| Lembrete da meta | No horário escolhido (padrão 09:00), se a meta do dia ainda não foi cumprida. Na fase Domínio (dias 46 a 60), só se a meta de ontem também falhou. | "Bom dia! Meta de hoje: 3 missões." ou "Você já fez 1 de 3 missões da meta de hoje." |
+| Sequência em risco | No horário escolhido (padrão 20:00), se ainda faltar missão para a meta. Vale até a meia-noite. | "Faltam 2 missões para a meta de hoje e sua sequência de 12 dias continua." |
+| Amigos e desafios | Na hora: pedido de amizade, amizade aceita, convite para desafio, incentivo ou reação, entrada no grupo. Várias reações seguidas viram uma notificação a cada 10 minutos. | "Rafa te mandou um pedido de amizade." |
+
+- Cada tipo liga e desliga separado; os horários vão de 05:00 a 23:30. Um lembrete de cada tipo por dia, no máximo.
+- Tocar na notificação abre a tela certa do app. Só caminhos do próprio app são aceitos.
+- Diário e detalhes dos hábitos nunca aparecem nas notificações.
+- Sair da conta desliga as notificações daquele aparelho. Outra conta no mesmo aparelho só recebe se ativar.
+- Aparelhos que cancelam a inscrição (app removido, permissão retirada) saem da lista na primeira entrega recusada. Entregas que falham por erro do serviço tentam de novo até 3 vezes.
+
 ---
 
 ## 5. Identidade visual
@@ -340,6 +360,6 @@ O plano fica em `profiles.plan` e só muda por função administrativa (`admin_s
 | 1 | Planejamento | ✅ este documento |
 | 2 | MVP: cadastro, onboarding, avaliação, programa de 66 dias, missões, XP, níveis, atributos, sequências, dashboard | ✅ |
 | 3 | Personagem visual, inventário, conquistas, chefes, modos de dificuldade | ✅ |
-| 4 | Amigos, grupos, ranking, temporadas, ferramentas (foco, água, sono, leitura, diário), Mentor, relatório semanal, Premium liberado para todos | ✅ (notificações em seguida) |
+| 4 | Amigos, grupos, ranking, temporadas, ferramentas (foco, água, sono, leitura, diário), Mentor, relatório semanal, Premium liberado para todos, notificações | ✅ |
 | 5 | Premium: decidir quais recursos são pagos (estrutura administrativa no servidor); pagamentos só se virar produto | |
 | 6 | Testes de usabilidade com amigos, ajustes, publicação | |

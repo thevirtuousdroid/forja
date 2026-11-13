@@ -13,6 +13,7 @@ import { IconCompass, IconDrop, IconFlame, IconPen, IconPlus, IconShield, IconTi
 import { fmtMinutes } from '../lib/tools';
 import { useFeedback } from '../components/Feedback';
 import { friendlyError } from '../lib/api';
+import { PushPrompt } from './Push';
 
 export function sortMissions(ms: Mission[]) {
   return [...ms].sort((a, b) =>
@@ -179,6 +180,8 @@ export function HomeScreen() {
           </div>
         </>
       )}
+
+      <PushPrompt />
 
       {(today.mentor_open ?? 0) > 0 && (
         <Link to="/mentor" className="notice">
