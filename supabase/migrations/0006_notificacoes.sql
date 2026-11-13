@@ -19,15 +19,18 @@
 -- 0. Extensões do Supabase (agendador e pedidos HTTP)
 -- ════════════════════════════════════════════════════════════════════════════
 
+-- Cria só o que ainda não existe. No Supabase, cada "create extension" roda de novo o script de
+-- permissões da extensão (mesmo com "if not exists"), e rodar duas vezes pode falhar.
+-- As permissões do pg_cron ficam por conta desse script do Supabase: não mexemos nelas aqui.
 do $$
 begin
-  if exists (select 1 from pg_available_extensions where name = 'pg_net') then
-    create extension if not exists pg_net with schema extensions;
+  if not exists (select 1 from pg_extension where extname = 'pg_net')
+     and exists (select 1 from pg_available_extensions where name = 'pg_net') then
+    create extension pg_net with schema extensions;
   end if;
-  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
-    create extension if not exists pg_cron with schema pg_catalog;
-    grant usage on schema cron to postgres;
-    grant all privileges on all tables in schema cron to postgres;
+  if not exists (select 1 from pg_extension where extname = 'pg_cron')
+     and exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    create extension pg_cron with schema pg_catalog;
   end if;
 end $$;
 
