@@ -6,8 +6,8 @@ _Atualizado em 12/11/2026._
 |---|---|
 | 1 · Planejamento | ✅ `docs/PLANEJAMENTO.md` |
 | 2 · MVP | ✅ no ar |
-| 3 · Gamificação | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0004_rpg.sql`) |
-| 4 · Sistemas avançados | ✅ pronta no ramo `etapa-4`; entra no ar depois de aplicar `0005_etapa4.sql` no Supabase |
+| 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
+| 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco atualizado com `0005_etapa4.sql`); faltam as notificações |
 | 5 · Premium | estrutura pronta (Premium liberado para todos por tempo limitado) |
 | 6 · Testes com amigos e lançamento | |
 
