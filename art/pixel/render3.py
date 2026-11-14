@@ -39,6 +39,7 @@ EXTRA = {
     'Y': ['#4a300a', '#7a5214', '#b07e26', '#deac44', '#fbe08a'],
     'V': ['#160c26', '#26163e', '#38225c', '#4e3280', '#6c4aa6'],
     'F': ['#2a0606', '#4a0c0c', '#741614', '#a2241c', '#cc4630'],
+    'J': ['#08080c', '#121218', '#1e1e27', '#30303c', '#5a5a70'],
 }
 SHOULDER = {'arm_martelo', 'arm_martelo_juiz'}
 STYLES = ['raspado', 'curto', 'franja', 'cacheado', 'longo', 'coque', 'volumoso', 'sem']
