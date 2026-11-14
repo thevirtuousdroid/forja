@@ -56,7 +56,7 @@ export function CharacterScreen() {
       <div className="row between"><h1>Personagem</h1><ProfileLink /></div>
 
       <div className="card hero stack" style={{ alignItems: 'center', textAlign: 'center' }}>
-        <Avatar config={avatar} size={176} label={`Personagem de ${profile.display_name || 'você'}`} />
+        <Avatar config={avatar} size={140} full label={`Personagem de ${profile.display_name || 'você'}`} />
         <div className="stack tight" style={{ alignItems: 'center' }}>
           <h2>{profile.display_name || 'Sem nome'}</h2>
           <Link to="/personagem/inventario?aba=titulos" className="pill accent" style={{ textDecoration: 'none' }}>

@@ -6,6 +6,7 @@ import type { AvatarConfig } from '../lib/types';
 import { BEARDS, HAIR_COLORS, HAIR_STYLES, OUTFIT_COLORS, SKIN_TONES, avatarOf } from '../lib/rpg';
 import { Avatar } from '../components/Avatar';
 import { BackButton, Loading } from '../components/ui';
+import { EYES, EYE_LABEL, EYE_SWATCH } from '../lib/pixelAvatar';
 import { useFeedback } from '../components/Feedback';
 
 export function AvatarEditorScreen() {
@@ -44,10 +45,31 @@ export function AvatarEditorScreen() {
       <p className="small faint">A aparência é sua escolha e fica sempre disponível. Os equipamentos você troca no inventário.</p>
 
       <section className="stack">
+        <h3>Corpo</h3>
+        <div className="grid-3" role="group" aria-label="Tipo de corpo">
+          {([['m', 'Masculino'], ['f', 'Feminino']] as const).map(([t, name]) => (
+            <button key={t} className="style-pick" aria-pressed={(cfg.tipo ?? 'm') === t} onClick={() => set({ tipo: t })}>
+              <Avatar config={{ ...cfg, tipo: t, equip: { corpo: cfg.equip.corpo, moldura: cfg.equip.moldura } }} size={72} label={name} />
+              {name}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="stack">
         <h3>Pele</h3>
         <div className="swatches" role="group" aria-label="Tom de pele">
           {SKIN_TONES.map((c, i) => (
             <button key={c} className="swatch" style={{ background: c }} aria-pressed={cfg.pele === i} aria-label={`Tom ${i + 1}`} onClick={() => set({ pele: i })} />
+          ))}
+        </div>
+      </section>
+
+      <section className="stack">
+        <h3>Olhos</h3>
+        <div className="swatches" role="group" aria-label="Cor dos olhos">
+          {EYES.map((e) => (
+            <button key={e} className="swatch" style={{ background: EYE_SWATCH[e] }} aria-pressed={(cfg.olhos ?? 'castanho') === e} aria-label={EYE_LABEL[e]} title={EYE_LABEL[e]} onClick={() => set({ olhos: e })} />
           ))}
         </div>
       </section>

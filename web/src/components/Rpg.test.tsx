@@ -21,33 +21,38 @@ const ITEMS: [Slot, string][] = [
 const base: AvatarConfig = { pele: 0, cabelo: 0, corCabelo: 0, barba: 0, corRoupa: 0, equip: { corpo: 'cor_tunica', moldura: 'mol_bronze' } };
 
 describe('Avatar', () => {
+  // O desenho em pixel sai num canvas; o que muda com cada item é a lista de camadas (e a moldura)
+  const sig = (el: Element) => `${el.querySelector('[data-layers]')?.getAttribute('data-layers')}|${el.querySelector('[data-frame]')?.getAttribute('data-frame')}`;
+
   it('desenha cada equipamento, e cada item muda o desenho', () => {
     const { container: plain } = render(<Avatar config={base} />);
-    const without = plain.innerHTML.replace(/id="[^"]*"|url\(#[^)]*\)|clip-path="[^"]*"/g, '');
+    const without = sig(plain);
     cleanup();
     for (const [slot, id] of ITEMS) {
       if (base.equip[slot] === id) continue;
       const { container } = render(<Avatar config={base} preview={{ slot, item: id }} />);
-      const html = container.innerHTML.replace(/id="[^"]*"|url\(#[^)]*\)|clip-path="[^"]*"/g, '');
-      expect(html, id).not.toBe(without);
+      expect(sig(container), id).not.toBe(without);
       cleanup();
     }
   });
 
   it('cobre todas as combinações de aparência sem quebrar', () => {
-    for (let cabelo = 0; cabelo < 8; cabelo++) {
-      for (let barba = 0; barba < 3; barba++) {
-        const { container } = render(<Avatar config={{ ...base, cabelo, barba, pele: cabelo % 6, corCabelo: cabelo, corRoupa: barba }} size={40} />);
-        expect(container.querySelector('svg')).toBeTruthy();
-        cleanup();
+    for (const tipo of ['m', 'f'] as const) {
+      for (let cabelo = 0; cabelo < 8; cabelo++) {
+        for (let barba = 0; barba < 3; barba++) {
+          const { container } = render(<Avatar config={{ ...base, tipo, cabelo, barba, pele: cabelo % 6, corCabelo: cabelo, corRoupa: barba }} size={40} />);
+          expect(container.querySelector('canvas')).toBeTruthy();
+          expect(sig(container)).toContain(`_${tipo}`);
+          cleanup();
+        }
       }
     }
   });
 
-  it('ids internos não colidem entre dois avatares na mesma tela', () => {
-    const { container } = render(<><Avatar config={base} /><Avatar config={base} /></>);
-    const ids = [...container.querySelectorAll('[id]')].map((e) => e.id);
-    expect(new Set(ids).size).toBe(ids.length);
+  it('corpo inteiro e retrato usam telas de tamanhos diferentes', () => {
+    const { container } = render(<><Avatar config={base} /><Avatar config={base} full /></>);
+    const [a, b] = [...container.querySelectorAll('canvas')];
+    expect(a.width).not.toBe(b.width);
   });
 });
 

@@ -1,6 +1,6 @@
 # Status do desenvolvimento
 
-_Atualizado em 13/11/2026._
+_Atualizado em 14/11/2026._
 
 | Etapa | Situação |
 |---|---|
@@ -9,7 +9,18 @@ _Atualizado em 13/11/2026._
 | 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
 | 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações no ar (banco com `0006_notificacoes.sql`) |
 | 5 · Premium | ✅ estrutura no ar (Premium liberado para todos; falta só o administrador decidir a data de fim) |
-| 6 · Testes com amigos e lançamento | em andamento: versão 0.7 (redesign, Caminho Sagrado, Mentor corrigido); próximos ajustes vêm do uso real |
+| 6 · Testes com amigos e lançamento | em andamento: versão 0.8 (personagem e chefes em pixel art); próximos ajustes vêm do uso real |
+
+## Versão 0.8 · Personagem e chefes em pixel art (14/11/2026)
+
+| Área | O que mudou |
+|---|---|
+| Backup | A versão 0.7 continua no `main` antes deste merge; para voltar, use "Instant Rollback" na Vercel ou o branch `backup/v0.5.1` para a versão de antes do redesign. |
+| Personagem | Pixel art cyberpunk desenhado por código (`art/pixel`, branch `pixel-art`), com camadas trocáveis: 2 tipos de corpo, 6 tons de pele, 8 cabelos (incluindo cachos definidos e tranças), 8 cores de cabelo, 3 barbas, 6 cores de olhos, 6 cores de roupa e os 27 equipamentos redesenhados no tema cyberpunk (mesmos ids). Retrato redondo com moldura neon em todas as telas; corpo inteiro com piscada na tela do Personagem. As camadas ficam em `web/public/pixel/avatar.json` (145 KB compactado, guardado para uso sem internet). |
+| Aparência | Tela de aparência ganhou "Corpo" (masculino/feminino) e "Olhos". O estilo "Volumoso" virou "Tranças" (mesmo índice). |
+| Chefes | Os 7 chefes foram gerados por IA no estilo Children of Morta cyberpunk e convertidos para pixel de verdade (128 px, 40 cores); originais em `art/pixel/bosses_ia/fonte`. As rachaduras de dano continuam por cima. |
+| Banco | `0008_avatar_pixel.sql`: `update_avatar` passa a guardar `tipo` ('m'/'f') e `olhos`. Sem ela, o app funciona, mas o tipo de corpo e a cor dos olhos não ficam salvos. |
+| Testes | 47 testes do app e todas as suítes do banco (nova: `80_avatar_pixel_test.sql`). |
 
 ## Versão 0.7 · Redesign, Caminho Sagrado e Mentor (14/11/2026)
 

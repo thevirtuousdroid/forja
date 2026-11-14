@@ -8,7 +8,7 @@ import errante from '../assets/bosses/errante.webp';
 import juiz from '../assets/bosses/juiz.webp';
 
 /**
- * Arte dos chefes: uma pintura por chefe, com o estado do combate desenhado por cima.
+ * Arte dos chefes: uma imagem em pixel art por chefe (art/pixel/bosses_ia), com o estado do combate desenhado por cima.
  * `damage` (0 a 1) abre rachaduras incandescentes nos marcos de 25%, 50% e 75%;
  * `defeated` apaga o chefe e o parte ao meio; `locked` mostra só a silhueta.
  */
@@ -68,7 +68,7 @@ export function BossArt({ id, size = 140, damage = 0, defeated, locked, classNam
       <circle cx="80" cy="80" r="80" fill={`url(#${g('glow')})`} />
       {art && (
         <image href={art} x="0" y="0" width="160" height="160" preserveAspectRatio="xMidYMid slice"
-               mask={`url(#${g('mask')})`} style={filter ? { filter } : undefined} />
+               mask={`url(#${g('mask')})`} style={{ imageRendering: 'pixelated', ...(filter ? { filter } : {}) }} />
       )}
 
       {/* Rachaduras conforme o dano: o brilho por baixo é a energia que escapa */}

@@ -16,6 +16,10 @@ export interface AvatarConfig {
   corCabelo: number;
   barba: number;
   corRoupa: number;
+  /** Tipo de corpo do personagem em pixel: m (masculino) ou f (feminino) */
+  tipo?: 'm' | 'f';
+  /** Cor dos olhos (castanho, mel, verde, azul, cinza, ciano) */
+  olhos?: string;
   personalizado?: boolean;
   equip: Partial<Record<Slot, string>>;
 }

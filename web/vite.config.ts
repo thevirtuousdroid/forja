@@ -33,6 +33,8 @@ export default defineConfig({
         runtimeCaching: [],
         // Notificações: mostrar o push e abrir a tela certa ao tocar (public/push-sw.js)
         importScripts: ['push-sw.js'],
+        // Camadas do personagem em pixel: guardadas para funcionar sem internet
+        globPatterns: ['**/*.{js,css,html}', 'pixel/*.json'],
       },
     }),
   ],

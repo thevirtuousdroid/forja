@@ -32,7 +32,7 @@ export const HAIR_COLORS = [
   { color: '#C9CCD3', label: 'Grisalho' },
   { color: '#3E5C8A', label: 'Azul' },
 ];
-export const HAIR_STYLES = ['Raspado', 'Curto', 'Franja', 'Cacheado', 'Longo', 'Coque', 'Volumoso', 'Sem cabelo'];
+export const HAIR_STYLES = ['Raspado', 'Curto', 'Franja', 'Cacheado', 'Longo', 'Coque', 'Tranças', 'Sem cabelo'];
 export const BEARDS = ['Sem barba', 'Por fazer', 'Cheia'];
 export const OUTFIT_COLORS = [
   { color: '#3B4A6B', label: 'Azul-aço' },
