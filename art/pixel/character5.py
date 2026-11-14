@@ -483,14 +483,16 @@ def braids(r):
         for Y in range(int(yl * 2), int((hy - 2.9) * 2) + 1):
             if M[Y, X] == 'H' and abs(t) < 0.8:
                 M[Y, X] = ''
-    for Y in range(M.shape[0]):               # divisões quadradas das tranças (box braids)
-        for X in range(M.shape[1]):
-            if M[Y, X] == 'H':
-                row = (Y + 1) // 5
-                if (X + (row % 2) * 3) % 6 == 0 or (Y + 1) % 5 == 0:
-                    V[Y, X] = 0
-                elif (X + (row % 2) * 3) % 6 == 1 and V[Y, X] < 4:
-                    V[Y, X] += 1
+    capH = M == 'H'
+    V[capH] = 0                               # fundo escuro entre as tranças
+    tmp = Part()
+    for x in np.arange(hx - rx - 0.6, hx + rx + 0.8, 1.6):   # tranças saindo da testa e indo para trás
+        t = (x - hx) / (rx + 1)
+        yb = hy - 2.6 - 1.0 * (1 - t * t)
+        _braid(tmp, x, yb + 0.6, hx + (x - hx) * 0.55, hy - ry - 1.5, 1.4, cuff=False)
+    TM, TV = raw(tmp.mat), raw(tmp.lvl)
+    put_ = capH & (TM == 'H')
+    V[put_] = np.maximum(0, TV[put_] - 1)
     for side in (-1, 1):                      # duas tranças caindo na frente dos ombros
         for j in range(2):
             x0 = hx + side * (rx - 0.2 + j * 1.2)
