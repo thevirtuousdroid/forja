@@ -1,0 +1,193 @@
+<title>Forja em Pixel Art</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Layout: uma coluna de celular; palco do personagem no topo, escolhas abaixo, chefe no fim. */
+:root {
+  --bg: #080c10; --surface: #111820; --surface-2: #1b2630; --line: #30414d; --line-hi: #4a6070;
+  --text: #ecf2f5; --muted: #a1afba; --accent: #ff7138; --accent-2: #ffb45e; --tech: #39d5d0;
+  --display: "Space Grotesk", system-ui, sans-serif; --body: Inter, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px; }
+main { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.kicker { font: 500 11px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--tech); }
+h1 { font: 700 26px/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0;
+  display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 14px; height: 2px; background: var(--accent); }
+p { margin: 0; color: var(--muted); }
+.stage { position: relative; aspect-ratio: 1; width: 100%; max-width: 100%; overflow: hidden; border: 1px solid var(--line);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  background: radial-gradient(60% 35% at 50% 100%, rgba(255,113,56,.32), transparent 70%),
+              radial-gradient(40% 60% at 105% 40%, rgba(57,213,208,.20), transparent 70%),
+              radial-gradient(80% 70% at 50% 40%, #16202b, #080c10); }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.stage .glow { filter: blur(9px); mix-blend-mode: screen; opacity: .85; animation: pulse 2.4s ease-in-out infinite; }
+.stage .shadow { position: absolute; left: 30%; right: 30%; bottom: 3.5%; height: 4%; border-radius: 50%; background: rgba(0,0,0,.6); filter: blur(3px); }
+@keyframes pulse { 50% { opacity: .45; } }
+.boss .sprite { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated;
+  background-size: 400% 100%; animation: frames .9s steps(4) infinite; }
+@keyframes frames { to { background-position: 133.333% 0; } }
+.boss .sprite.glow { filter: blur(10px) saturate(1.4); mix-blend-mode: screen; opacity: .55; }
+@media (prefers-reduced-motion: reduce) { .stage .glow, .boss .sprite { animation: none; } }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 14px var(--body); color: var(--text); background: var(--surface); border: 1px solid var(--line); min-height: 44px; padding: 0 14px; cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+button[aria-pressed="true"] { border-color: var(--accent); background: #2a160c; }
+button:focus-visible { outline: 2px solid var(--tech); outline-offset: 2px; }
+.sw { width: 44px; padding: 0; position: relative; }
+.sw span { position: absolute; inset: 9px; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.sw[aria-pressed="true"] { border-color: var(--tech); background: var(--surface-2); }
+.minis { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.minis figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 500 11px var(--mono); color: var(--muted); }
+.minis canvas { image-rendering: pixelated; background: var(--surface); border: 1px solid var(--line); border-radius: 50%; }
+.note { font-size: 13px; border-left: 2px solid var(--tech); padding-left: 10px; color: var(--muted); }
+</style>
+<main>
+  <span class="kicker">Forja · teste de estilo</span>
+  <h1>Personagem e chefe em pixel art</h1>
+  <p>Pixel art com luz forte e brilho suave por cima, à moda de Children of Morta, no visual cyberpunk de forja. Troque as opções: tudo sai do mesmo desenho.</p>
+
+  <div class="stage" aria-label="Personagem animado"><div class="shadow"></div><canvas id="char" width="64" height="64"></canvas><canvas id="charGlow" class="glow" width="64" height="64"></canvas></div>
+
+  <div class="group"><h2>Corpo</h2><div class="row" id="g-body"></div></div>
+  <div class="group"><h2>Pele</h2><div class="row" id="g-skin"></div></div>
+  <div class="group"><h2>Cabelo</h2><div class="row" id="g-style"></div><div class="row" id="g-hair"></div></div>
+  <div class="group"><h2>Olhos</h2><div class="row" id="g-eye"></div></div>
+  <div class="group"><h2>Equipamentos</h2><div class="row" id="g-items"></div></div>
+
+  <div class="group"><h2>Tamanhos no app</h2>
+    <div class="minis"><figure><canvas id="m96" width="96" height="96"></canvas>perfil</figure><figure><canvas id="m48" width="48" height="48"></canvas>social</figure><figure><canvas id="m32" width="32" height="32"></canvas>ranking</figure></div>
+  </div>
+
+  <div class="group"><h2>Chefe · A Hidra das Notificações</h2>
+    <div class="stage boss" aria-label="A Hidra das Notificações, animada"><div class="sprite" id="hidra"></div><div class="sprite glow" id="hidraGlow"></div></div>
+  </div>
+
+  <p class="note">Teste: 64×64 pixels para o personagem e 96×96 para o chefe. Cada peça é uma camada no mesmo desenho, e as cores vêm de paletas trocáveis. Itens e cores novos custam minutos.</p>
+</main>
+<script>
+/*DATA*/
+const HIDRA = 'data:image/png;base64,/*HIDRA*/';
+const W = 64;
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const st = { body: 'f', skin: 'morena', style: 'cacheado', hair: 'preto', eye: 'mel', items: { elmo: false, armadura: true, martelo: true } };
+const LABEL = { m: 'Homem', f: 'Mulher', curto: 'Curto', longo: 'Longo', cacheado: 'Cacheado', elmo: 'Elmo de ferro', armadura: 'Armadura de placas', martelo: 'Martelo da forja' };
+
+// decodifica cada camada uma vez: [mat, nível] por pixel
+const DEC = {};
+for (const [k, v] of Object.entries(PX.layers)) {
+  const a = new Array(W * W);
+  for (let i = 0; i < W * W; i++) { const c = v.px[i * 2]; a[i] = c === '.' ? null : [c, +v.px[i * 2 + 1]]; }
+  DEC[k] = a;
+}
+
+function palette() {
+  const p = {};
+  for (const [k, v] of Object.entries(PX.pal.fixed)) p[k] = v.map(hex);
+  p.S = PX.pal.skins[st.skin].map(hex);
+  p.H = PX.pal.hairs[st.hair].map(hex);
+  p.I = PX.pal.eyes[st.eye].map(hex);
+  const red = hex('#b3404a');
+  p.L = p.S.map((c) => c.map((x, i) => x * 0.55 + red[i] * 0.45));
+  return p;
+}
+
+function names(blink) {
+  const g = st.body, out = [`cabelo_${st.style}_tras`];
+  if (st.items.martelo) out.push('martelo');
+  out.push(`corpo_${g}`);
+  if (st.items.armadura) out.push(`armadura_${g}`);
+  out.push(`cabeca_${g}`, blink ? `rosto_${g}_piscar` : `rosto_${g}`, `cabelo_${st.style}`);
+  if (st.items.elmo) out.push('elmo');
+  return out;
+}
+
+// Monta: camadas em ordem, contorno interno, contorno externo colorido e luz de borda (ciano à direita, brasa à esquerda).
+function compose(list, pal, headDy) {
+  const rgb = new Float32Array(W * W * 3), on = new Uint8Array(W * W), emis = [];
+  for (const n of list) {
+    const L = DEC[n], dy = PX.layers[n].part === 'head' ? headDy : 0;
+    const inL = new Uint8Array(W * W);
+    for (let i = 0; i < W * W; i++) if (L[i]) { const y = ((i / W) | 0) + dy; if (y >= 0 && y < W) inL[y * W + (i % W)] = 1; }
+    for (let i = 0; i < W * W; i++) {
+      const c = L[i]; if (!c) continue;
+      const x = i % W, y = ((i / W) | 0) + dy; if (y < 0 || y >= W) continue;
+      const j = y * W + x; let lvl = c[1];
+      for (const [ddx, ddy] of [[0, 1], [-1, 0], [1, 0]]) {
+        const xx = x + ddx, yy = y + ddy;
+        if (xx >= 0 && xx < W && yy < W && !inL[yy * W + xx] && on[yy * W + xx]) { lvl = Math.max(0, lvl - 1); break; }
+      }
+      const col = pal[c[0]][lvl];
+      rgb[j * 3] = col[0]; rgb[j * 3 + 1] = col[1]; rgb[j * 3 + 2] = col[2]; on[j] = 1;
+      emis[j] = (c[0] === 'O' || c[0] === 'T' || c[0] === 'P') && lvl >= 3 ? col : null;
+    }
+  }
+  const out = new Uint8ClampedArray(W * W * 4), glow = new Uint8ClampedArray(W * W * 4);
+  const ink = hex('#070b12'), cyan = hex('#39d5d0'), ember = hex('#ff7138');
+  const filled = (x, y) => x >= 0 && x < W && y >= 0 && y < W && on[y * W + x];
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const j = y * W + x;
+    if (on[j]) {
+      let c = [rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]];
+      if (!filled(x + 1, y)) c = c.map((v, i) => v * 0.55 + cyan[i] * 0.45);
+      else if (!filled(x - 1, y) && y > 28) c = c.map((v, i) => v * 0.72 + ember[i] * 0.28);
+      out.set([c[0], c[1], c[2], 255], j * 4);
+      if (emis[j]) glow.set([...emis[j], 255], j * 4);
+    } else {
+      const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([a, b]) => filled(x + a, y + b));
+      if (nb.length) {
+        const m = [0, 0, 0];
+        for (const [a, b] of nb) { const k = (y + b) * W + x + a; for (let i = 0; i < 3; i++) m[i] += rgb[k * 3 + i] / nb.length; }
+        out.set([m[0] * 0.28 + ink[0] * 0.72, m[1] * 0.28 + ink[1] * 0.72, m[2] * 0.28 + ink[2] * 0.72, 255], j * 4);
+      }
+    }
+  }
+  return { out, glow };
+}
+
+const cv = document.getElementById('char').getContext('2d'), gv = document.getElementById('charGlow').getContext('2d');
+let frame = 0, blinkUntil = 0, PAL = palette();
+function draw() {
+  const blink = performance.now() < blinkUntil;
+  const headDy = frame % 4 >= 2 ? 1 : 0;
+  const { out, glow } = compose(names(blink), PAL, headDy);
+  cv.putImageData(new ImageData(out, W, W), 0, 0);
+  gv.putImageData(new ImageData(glow, W, W), 0, 0);
+  if (frame % 4 === 0) minis(out);
+}
+function minis(out) {
+  const src = document.createElement('canvas'); src.width = src.height = W; src.getContext('2d').putImageData(new ImageData(out, W, W), 0, 0);
+  for (const [id, s] of [['m96', 96], ['m48', 48], ['m32', 32]]) {
+    const c = document.getElementById(id).getContext('2d'); c.imageSmoothingEnabled = false; c.clearRect(0, 0, s, s);
+    // retrato: do topo da cabeça até o peito
+    c.drawImage(src, 14, 2, 36, 36, 0, 0, s, s);
+  }
+}
+setInterval(() => { frame++; if (Math.random() < 0.08) blinkUntil = performance.now() + 160; draw(); }, 280);
+
+function chips(id, opts, key, swatch) {
+  const el = document.getElementById(id); el.innerHTML = '';
+  for (const o of opts) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    if (swatch) { b.className = 'sw'; b.title = o; b.setAttribute('aria-label', o); const s = document.createElement('span'); s.style.background = swatch[o][3]; b.append(s); }
+    else b.textContent = LABEL[o] || o;
+    const isOn = () => (key === 'items' ? st.items[o] : st[key] === o);
+    b.setAttribute('aria-pressed', isOn());
+    b.onclick = () => { if (key === 'items') st.items[o] = !st.items[o]; else st[key] = o; PAL = palette(); refreshAll(); };
+    el.append(b);
+  }
+}
+function refreshAll() {
+  chips('g-body', ['f', 'm'], 'body'); chips('g-skin', Object.keys(PX.pal.skins), 'skin', PX.pal.skins);
+  chips('g-style', ['curto', 'longo', 'cacheado'], 'style'); chips('g-hair', Object.keys(PX.pal.hairs), 'hair', PX.pal.hairs);
+  chips('g-eye', Object.keys(PX.pal.eyes), 'eye', PX.pal.eyes); chips('g-items', ['elmo', 'armadura', 'martelo'], 'items');
+  draw();
+}
+for (const id of ['hidra', 'hidraGlow']) document.getElementById(id).style.backgroundImage = `url(${HIDRA})`;
+refreshAll();
+</script>
