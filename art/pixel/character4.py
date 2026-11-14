@@ -54,9 +54,7 @@ def implants(r):
     y = r['eye_y']
     for k, (x, yy) in enumerate([(hx - rx + 1, hy - 3), (hx - rx + 1, hy - 2), (hx - rx + 1.4, hy - 1), (hx - rx + 2, hy)]):
         L.px(int(x), int(yy), 'T', 4 if k == 0 else 3)
-    for x in (43, 44):
-        L.px(x, y + 3, 'T', 3)
-    L.px(42, y + 3, 'T', 4)
+    L.px(int(hx - rx + 1), int(y + 3), 'T', 3)   # ponto na maçã do rosto, junto à orelha
     ex = hx + rx - 0.2
     mod = L.mask_ellipse(ex + 0.4, hy + 1.2, 1.6, 2.4)
     L.part(); L.ellipsoid(mod, ex, hy + 0.6, 1.6, 2.4, 'D', bias=0.3, **KW)

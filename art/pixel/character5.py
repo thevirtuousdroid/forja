@@ -208,6 +208,107 @@ def stubble_hi(r):
     return L
 
 
+def face_v3(r, blink=False):
+    """Rosto no pixel fino mantendo as proporções do desenho anterior: olho amendoado de 2 linhas
+    (sem branco grande), íris 4px com pupila e brilho, pálpebra fina, nariz só por sombra, boca curta."""
+    L = Part()
+    P = lambda X, Y, m, v: L.px1(X / 2, Y / 2, m, v)
+    fem = r['female']
+    ey = r['eye_y'] * 2               # linha de cima da abertura do olho (fino)
+    for x0, side in ((86, -1), (100, 1)):   # x0 = canto esquerdo de cada olho (8 px finos de largura)
+        out = x0 if side < 0 else x0 + 7    # canto de fora
+        inn = x0 + 7 if side < 0 else x0
+        if blink:
+            for k in range(8):
+                P(x0 + k, ey + 1, 'K', 1)
+            P(out, ey + 2, 'K', 1)
+        else:
+            # pálpebra de cima: linha escura, desce no canto de fora (amendoado)
+            ic = x0 + 3 + (1 if side < 0 else 0)   # íris levemente puxada para o nariz
+            for k in range(8):
+                X = x0 + k
+                P(X, ey - (2 if ic - 2 <= X < ic + 2 else 1), 'K', 0)
+            P(out, ey, 'K', 0)
+            if fem:
+                P(out + side, ey - 1, 'K', 0); P(out + side, ey - 2, 'K', 0); P(out, ey - 2, 'K', 1)
+            # abertura: 2 linhas; branco só nas pontas
+            for k in range(8):
+                X = x0 + k
+                if X == out:
+                    continue
+                for dy in (0, 1):
+                    P(X, ey + dy, 'W', 3 if dy == 0 else 2)
+            for X in range(ic - 2, ic + 2):
+                P(X, ey - 1, 'I', 1)
+                P(X, ey, 'I', 2)
+                P(X, ey + 1, 'I', 3)
+            P(ic - 1, ey, 'K', 0); P(ic, ey, 'K', 0)     # pupila
+            P(ic - 1, ey - 1, 'K', 0); P(ic, ey - 1, 'K', 1)
+            P(ic - 2, ey - 1, 'W', 4)                   # brilho
+            # pálpebra de baixo: sombra suave
+            for k in range(1, 7):
+                P(x0 + k, ey + 2, 'S', 1)
+        # sobrancelha: 2 px no começo, afina para fora, leve arco
+        by = ey - 5 - (1 if fem else 0)
+        for k in range(-1, 9):
+            X = x0 + k
+            t = (X - inn) * (-side) / 9.0 if side < 0 else (X - inn) / 9.0
+            t = abs((X - inn) / 9.0)
+            lift = 1 if 0.25 < t < 0.75 else 0
+            if fem and 0.35 < t < 0.65:
+                lift = 2
+            P(X, by - lift, 'H', 1)
+            if t < (0.5 if fem else 0.8):
+                P(X, by - lift + 1, 'H', 0)
+    # nariz: sombra de um lado, ponta com luz, narinas
+    nx = 96
+    for Y in range(ey + 2, ey + 7):
+        P(nx - 2, Y, 'S', 1 if Y > ey + 3 else 2)
+    P(nx - 1, ey + 7, 'S', 4); P(nx, ey + 7, 'S', 4)
+    P(nx - 3, ey + 8, 'S', 1); P(nx - 2, ey + 9, 'S', 0); P(nx + 1, ey + 9, 'S', 0)
+    for X in range(nx - 1, nx + 1):
+        P(X, ey + 9, 'S', 1)
+    # boca
+    my = ey + 13
+    if fem:
+        for X in range(nx - 4, nx + 4):
+            P(X, my, 'L', 0 if X in (nx - 4, nx + 3) else 1)
+        for X in range(nx - 3, nx + 3):
+            P(X, my + 1, 'L', 3)
+        for X in range(nx - 2, nx + 2):
+            P(X, my + 2, 'L', 2)
+        P(nx - 1, my - 1, 'L', 2); P(nx, my - 1, 'L', 2)
+    else:
+        P(nx - 4, my, 'S', 1); P(nx + 3, my, 'S', 1)
+        for X in range(nx - 3, nx + 3):
+            P(X, my, 'S', 0)
+        for X in range(nx - 2, nx + 2):
+            P(X, my + 1, 'S', 3)
+        P(nx - 1, my + 3, 'S', 1); P(nx, my + 3, 'S', 1)   # sombra sob o lábio
+    return L
+
+
+def stubble_v3(r):
+    """Barba por fazer: sombra de pele no maxilar + fios finos esparsos (sem mancha no bigode)."""
+    L = Part()
+    hx, hy, rx, ry = r['head']
+    cw, cy = r['chin']
+    m = L.mask_poly([(hx - rx + 0.4, hy + 0.5), (hx + rx - 0.4, hy + 0.5), (hx + rx - 1.4, hy + 5.5), (hx + cw + 0.5, cy),
+                     (hx - cw - 0.5, cy), (hx - rx + 1.4, hy + 5.5)])
+    m &= ~L.mask_poly([(hx - rx + 2, hy - 2), (hx + rx - 2, hy - 2), (hx + rx - 2.5, r['eye_y'] + 4.5), (hx - rx + 2.5, r['eye_y'] + 4.5)])
+    ys, xs = np.where(raw(m))
+    ey = r['eye_y'] * 2
+    rng = np.random.default_rng(7)
+    for y, x in zip(ys, xs):
+        if ey + 12 <= y <= ey + 14 and 90 <= x <= 101:   # deixa a boca limpa
+            continue
+        if (x + y) % 2 == 0:
+            L.px1(x / 2, y / 2, 'S', 1)
+        elif rng.random() < 0.18:
+            L.px1(x / 2, y / 2, 'H', 1)
+    return L
+
+
 def build():
     l3 = c3.build()
     json.dump(l3, open('layers3.json', 'w'), separators=(',', ':'))
@@ -229,9 +330,9 @@ def build():
             layers[k] = dict(px=tmp.encode(), part=v['part'])
     for g, r in RIG.items():
         put(f'detalhe_{g}', details(r), 'body')
-        put(f'rosto_{g}', face_hi(r), 'head')
-        put(f'rosto_{g}_piscar', face_hi(r, True), 'head')
-        put(f'barba_1_{g}', stubble_hi(r), 'head')
+        put(f'rosto_{g}', face_v3(r), 'head')
+        put(f'rosto_{g}_piscar', face_v3(r, True), 'head')
+        put(f'barba_1_{g}', stubble_v3(r), 'head')
         hx_, hy_, hrx, hry = r['hand']
         put(f'luva_esq_{g}', glove(hx_, hy_, hrx, hry), 'body')
         put(f'luva_solto_{g}', glove(96 - hx_, hy_, hrx, hry), 'body')
