@@ -173,40 +173,50 @@ function compose(list, pal, headDy) {
 
 // Molduras em pixel: anel com luz de cima à esquerda e detalhes de cada tipo
 const FRAMES = {
-  mol_bronze: { ramp: ['#3e2410', '#6e4420', '#a06a36', '#c88c4e', '#ecc08a'] },
-  mol_ferro: { ramp: ['#20262e', '#3a434e', '#5e6a78', '#8794a2', '#b9c4ce'], rivets: 4 },
-  mol_aco: { ramp: ['#2c3640', '#56626e', '#8a98a6', '#c2ccd6', '#f2f6fa'], double: true },
-  mol_runas: { ramp: ['#0e2440', '#1c4070', '#2e64a4', '#5c94d2', '#a6d0f6'], runes: true },
-  mol_chamas: { ramp: ['#5a1c08', '#9a3410', '#d85a20', '#ff8a3c', '#ffd08a'], flames: true },
-  mol_66: { ramp: ['#4a300a', '#7a5214', '#b07e26', '#deac44', '#fbe08a'], stars: true },
+  // Molduras cyberpunk: anel de metal + detalhes de luz (HUD, circuito, plasma)
+  mol_bronze: { ramp: ['#3e2410', '#6e4420', '#a06a36', '#c88c4e', '#ecc08a'], gaps: 8, inner: '#ff7138' },
+  mol_ferro: { ramp: ['#20262e', '#3a434e', '#5e6a78', '#8794a2', '#b9c4ce'], gaps: 4, bolts: '#39d5d0', inner: '#13838a' },
+  mol_aco: { ramp: ['#2c3640', '#56626e', '#8a98a6', '#c2ccd6', '#f2f6fa'], double: true, inner: '#8ff0ea', ticks: ['#39d5d0', 24] },
+  mol_runas: { ramp: ['#0e2440', '#1c4070', '#2e64a4', '#5c94d2', '#a6d0f6'], inner: '#39d5d0', ticks: ['#8ff0ea', 36], arcs: '#39d5d0' },
+  mol_chamas: { ramp: ['#3a0a2e', '#6a1250', '#a81e7a', '#e040a8', '#ff9ad8'], inner: '#ff7138', plasma: true },
+  mol_66: { ramp: ['#4a300a', '#7a5214', '#b07e26', '#deac44', '#fbe08a'], inner: '#fff0d6', stars: true, arcs: '#ffb45e' },
 };
 function portrait(cv, out, frameId) {
   const c = cv.getContext('2d'), img = c.createImageData(WP, WP), d = img.data;
   const R = 17.5, cx = 23.5, cy = 23.5, f = FRAMES[frameId] || FRAMES.mol_bronze, ramp = f.ramp.map(hex);
   const bg = hex('#16202b'), bg2 = hex('#0b1016');
+  const TAU = Math.PI * 2;
   for (let y = 0; y < WP; y++) for (let x = 0; x < WP; x++) {
     const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy), k = (y * WP + x) * 4;
+    const ang = (Math.atan2(dy, dx) + TAU) % TAU;
     if (r <= R) {
-      // recorte do rosto e do peito do personagem (região 34x34 a partir de x=31, y=0)
       const sx = Math.round(62 + (x - (cx - R)) * (68 / (2 * R))), sy = Math.round((y - (cy - R)) * (68 / (2 * R)));
       const j = (sy * W + sx) * 4;
       const t = Math.min(1, r / R);
       if (out[j + 3]) d.set([out[j], out[j + 1], out[j + 2], 255], k);
       else d.set(bg.map((v, i) => v * (1 - t) + bg2[i] * t).concat(255), k);
+      if (f.inner && r > R - 0.8) d.set([...hex(f.inner), 255], k);   // linha de luz por dentro do aro
     }
-    const inRing = f.double ? (r > R && r <= R + 1.4) || (r > R + 2.4 && r <= R + 3.6) : r > R && r <= R + 3.2;
+    let inRing = f.double ? (r > R && r <= R + 1.4) || (r > R + 2.4 && r <= R + 3.6) : r > R && r <= R + 3.2;
+    const gapAt = f.gaps && ((ang + Math.PI / f.gaps) % (TAU / f.gaps)) < 0.09 && r > R + 0.6;
+    if (inRing && gapAt) { d.set([...hex(f.inner || '#39d5d0'), 255], k); continue; }   // fendas com luz
     if (inRing) {
       const lit = -(dx * 0.6 + dy * 0.7) / Math.max(r, 1);
-      const lv = Math.max(0, Math.min(4, Math.round(2 + lit * 1.8 + ((x + y) % 2 ? 0.2 : -0.2))));
+      let lv = Math.max(0, Math.min(4, Math.round(2 + lit * 1.8 + ((x + y) % 2 ? 0.2 : -0.2))));
+      if (Math.abs(r - (R + 1.6)) < 0.35 && !f.double) lv = Math.max(0, lv - 1);   // sulco no meio do aro
       d.set([...ramp[lv], 255], k);
     } else if (r > R + (f.double ? 3.6 : 3.2) && r <= R + (f.double ? 4.6 : 4.2)) d.set([...ramp[0].map((v) => v * 0.4), 255], k);
+    if (f.arcs && r > R + 4.6 && r <= R + 5.4) {   // arcos de HUD por fora
+      const a = ang / TAU;
+      if ((a > 0.58 && a < 0.8) || (a > 0.08 && a < 0.3)) d.set([...hex(f.arcs), 255], k);
+    }
   }
   const put = (x, y, col) => { if (x >= 0 && x < WP && y >= 0 && y < WP) d.set([...col, 255], (y * WP + x) * 4); };
   const at = (ang, rr) => [Math.round(cx + Math.cos(ang) * rr), Math.round(cy + Math.sin(ang) * rr)];
-  if (f.rivets) for (let i = 0; i < 4; i++) { const [x, y] = at(Math.PI / 4 + i * Math.PI / 2, R + 1.6); put(x, y, ramp[4]); put(x + 1, y + 1, ramp[0]); }
-  if (f.runes) for (let i = 0; i < 8; i++) { const [x, y] = at(i * Math.PI / 4, R + 1.6); put(x, y, hex('#39d5d0')); put(x, y - 1, hex('#8ff0ea')); }
-  if (f.flames) for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; for (let s = 0; s < (i % 2 ? 2 : 3); s++) { const [x, y] = at(a, R + 4 + s); put(x, y, s ? hex('#ffb45e') : hex('#ff7138')); } }
-  if (f.stars) for (let i = 0; i < 6; i++) { const [x, y] = at(-Math.PI / 2 + i * Math.PI / 3, R + 4.4); put(x, y, hex('#fff0d6')); put(x - 1, y, hex('#deac44')); put(x + 1, y, hex('#deac44')); put(x, y - 1, hex('#deac44')); put(x, y + 1, hex('#deac44')); }
+  if (f.bolts) for (let i = 0; i < 4; i++) { const [x, y] = at(Math.PI / 4 + i * Math.PI / 2, R + 1.6); put(x, y, ramp[4]); put(x + 1, y, ramp[1]); put(x, y + 1, ramp[1]); put(x + 1, y + 1, hex(f.bolts)); }
+  if (f.ticks) { const [col, n] = f.ticks; for (let i = 0; i < n; i++) { const [x, y] = at(i * TAU / n, R + 4.6); put(x, y, hex(i % 3 ? col : '#e6fffd')); } }
+  if (f.plasma) for (let i = 0; i < 20; i++) { const a = i * TAU / 20 + (i % 2) * 0.05; const n = 1 + (i * 7 % 3); for (let s = 0; s < n; s++) { const [x, y] = at(a, R + 3.8 + s); put(x, y, hex(s === 0 ? '#ff7138' : s === 1 ? '#e040a8' : '#ff9ad8')); } }
+  if (f.stars) for (let i = 0; i < 6; i++) { const [x, y] = at(-Math.PI / 2 + i * Math.PI / 3, R + 1.6); put(x, y, hex('#fff0d6')); put(x - 1, y, hex('#ff7138')); put(x + 1, y, hex('#ff7138')); put(x, y - 1, hex('#ffb45e')); put(x, y + 1, hex('#ffb45e')); }
   c.putImageData(img, 0, 0);
 }
 
