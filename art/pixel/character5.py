@@ -369,6 +369,135 @@ def head_v3(r):
     return L
 
 
+# ── cabelos cacheados (novos): cachos definidos e tranças ───────────────────
+
+def _ball(L, cx, cy, rx, ry, bias=0.0, mat='H'):
+    """Um cacho: bolinha sombreada no pixel fino, com borda escura."""
+    from engine import SCALE as S, LIGHT
+    M = raw(L.mat); V = raw(L.lvl)
+    X0, X1 = int((cx - rx) * S) - 1, int((cx + rx) * S) + 2
+    Y0, Y1 = int((cy - ry) * S) - 1, int((cy + ry) * S) + 2
+    for Y in range(max(0, Y0), min(L.h, Y1)):
+        for X in range(max(0, X0), min(L.w, X1)):
+            nx = ((X + 0.5) / S - cx) / rx; ny = ((Y + 0.5) / S - cy) / ry
+            d = nx * nx + ny * ny
+            if d > 1:
+                continue
+            nz = np.sqrt(max(0.02, 1 - d))
+            l = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]
+            v = int(np.clip(round(1.2 + 2.6 * l + bias), 0, 4))
+            if d > 0.72:
+                v = max(0, v - 1)
+            M[Y, X] = mat; V[Y, X] = v
+
+
+def curls_defined(r):
+    """Cachos definidos na altura dos ombros, repartidos de lado, emoldurando o rosto."""
+    front, back = Part(), Part()
+    hx, hy, rx, ry = r['head']
+    rng = np.random.default_rng(21)
+    # massa de trás (escura) para não ficar buraco entre os cachos
+    base = back.mask_ellipse(hx, hy - 1.5, rx + 3.4, ry + 0.6) | back.mask_poly(
+        [(hx - rx - 3.6, hy), (hx + rx + 3.6, hy), (hx + rx + 3.0, hy + 9.5), (hx - rx - 3.0, hy + 9.5)])
+    back.flat(base, 'H', 0)
+    pts = []
+    for y in np.arange(hy - ry - 0.4, hy + 10.5, 1.9):
+        for x in np.arange(hx - rx - 3.6, hx + rx + 3.8, 2.1):
+            x_ = x + (0.9 if int((y - hy) / 1.9) % 2 else 0) + rng.uniform(-0.3, 0.3)
+            if raw(base)[int(y * 2), int(np.clip(x_ * 2, 0, 191))]:
+                pts.append((x_, y + rng.uniform(-0.3, 0.3)))
+    for (x, y) in sorted(pts, key=lambda p: p[1]):
+        _ball(back, x, y, 1.35, 1.25, bias=-0.6 - 0.04 * (y - hy))
+    # frente: topo da cabeça + cachos na testa + colunas dos lados do rosto
+    cap = front.mask_ellipse(hx + 0.4, hy - 2.6, rx + 1.6, ry - 0.8)
+    cap[int(hy - 3.4):, :] = False
+    front.ellipsoid(cap, hx - 2, hy - 6, rx + 2, ry, 'H', bias=-0.2, spread=2.4, dither=0.1)
+    tops = []
+    for y in np.arange(hy - ry + 0.2, hy - 3.6, 1.8):
+        for x in np.arange(hx - rx - 1.0, hx + rx + 1.6, 2.0):
+            x_ = x + (1.0 if int((y - hy) / 1.8) % 2 else 0) + rng.uniform(-0.25, 0.25)
+            if raw(cap)[int(y * 2), int(x_ * 2)]:
+                tops.append((x_, y))
+    for x in np.arange(hx - rx + 0.2, hx + rx + 0.4, 2.0):   # franja de cachos, mais volume no lado da risca
+        tops.append((x + rng.uniform(-0.2, 0.2), hy - 3.4 + (0.6 if x > hx + 1 else 0)))
+    for (x, y) in sorted(tops, key=lambda p: p[1]):
+        _ball(front, x, y, 1.3, 1.2, bias=0.15)
+    for side in (-1, 1):                                       # colunas que caem ao lado do rosto
+        for k, y in enumerate(np.arange(hy - 2.2, hy + 9.0, 1.8)):
+            x = hx + side * (rx + 0.6 + 0.12 * k) + (0.5 if k % 2 else -0.2) * side
+            _ball(front, x, y, 1.3, 1.15, bias=0.0 - 0.05 * k)
+    return front, back
+
+
+def _braid(L, x0, y0, x1, y1, w=1.5, cuff=True):
+    """Trança: faixa com padrão de gomos em V; ponta com anel de neon."""
+    from engine import SCALE as S
+    M = raw(L.mat); V = raw(L.lvl)
+    ax, ay, bx, by = x0 * S, y0 * S, x1 * S, y1 * S
+    dx, dy = bx - ax, by - ay
+    ln = np.hypot(dx, dy); ux, uy = dx / ln, dy / ln
+    hw = w * S / 2
+    for Y in range(max(0, int(min(ay, by) - hw) - 1), min(L.h, int(max(ay, by) + hw) + 2)):
+        for X in range(max(0, int(min(ax, bx) - hw) - 1), min(L.w, int(max(ax, bx) + hw) + 2)):
+            px_, py_ = X + 0.5 - ax, Y + 0.5 - ay
+            s = px_ * ux + py_ * uy
+            u = -px_ * uy + py_ * ux
+            if s < 0 or s > ln or abs(u) > hw:
+                continue
+            if cuff and s > ln - 3:
+                M[Y, X] = 'T'; V[Y, X] = 4 if s < ln - 1.5 else 3
+                continue
+            ph = (s - 1.4 * abs(u)) % 4
+            v = 4 if ph < 1.5 else 2 if ph < 3 else 0
+            if u > hw - 1:
+                v = max(0, v - 1)               # lado da sombra
+            if s > ln - 5 and cuff:
+                v = max(0, v - 1)
+            M[Y, X] = 'H'; V[Y, X] = v
+
+
+def braids(r):
+    """Tranças finas (box braids) com anéis de neon nas pontas; frente com risca no couro."""
+    front, back = Part(), Part()
+    hx, hy, rx, ry = r['head']
+    rng = np.random.default_rng(8)
+    scalp = back.mask_ellipse(hx, hy - 1.2, rx + 1.2, ry + 0.2)
+    back.flat(scalp, 'H', 0)
+    xs = np.arange(hx - rx - 1.4, hx + rx + 1.6, 1.25)
+    for x in xs:                              # tranças de trás, abrindo para os lados
+        t = (x - hx) / (rx + 1.4)
+        top_y = hy - ry * np.sqrt(max(0.05, 1 - min(1, t * t))) + 1.0
+        x_end = x + t * 2.6
+        _braid(back, x, top_y, x_end, hy + 15.5 + rng.uniform(-1.5, 1.5), 1.5, cuff=rng.random() < 0.45)
+    cap = front.mask_ellipse(hx, hy - 1.6, rx + 0.8, ry - 0.3)
+    cap[int(hy - 3.0):, :] = False
+    sidem = front.mask_poly([(hx - rx - 0.8, hy - 4), (hx - rx + 1.2, hy - 4), (hx - rx + 0.9, hy + 0.2), (hx - rx - 0.4, hy + 0.2)])
+    capm = cap | sidem | sidem[:, ::-1]
+    front.ellipsoid(capm, hx - 1.5, hy - 4.5, rx + 1.2, ry, 'H', bias=0.1, spread=2.6, dither=0.1)
+    M = raw(front.mat); V = raw(front.lvl)
+    for X in range(M.shape[1]):               # linha do cabelo em arco (mais alta no meio)
+        t = ((X + 0.5) / 2 - hx) / (rx + 0.8)
+        if abs(t) > 1:
+            continue
+        yl = hy - 3.0 - 1.0 * (1 - t * t)
+        for Y in range(int(yl * 2), int((hy - 2.9) * 2) + 1):
+            if M[Y, X] == 'H' and abs(t) < 0.8:
+                M[Y, X] = ''
+    for Y in range(M.shape[0]):               # divisões quadradas das tranças (box braids)
+        for X in range(M.shape[1]):
+            if M[Y, X] == 'H':
+                row = (Y + 1) // 5
+                if (X + (row % 2) * 3) % 6 == 0 or (Y + 1) % 5 == 0:
+                    V[Y, X] = 0
+                elif (X + (row % 2) * 3) % 6 == 1 and V[Y, X] < 4:
+                    V[Y, X] += 1
+    for side in (-1, 1):                      # duas tranças caindo na frente dos ombros
+        for j in range(2):
+            x0 = hx + side * (rx - 0.2 + j * 1.2)
+            _braid(front, x0, hy - 3.2, x0 + side * (1.6 + j * 0.8), hy + 13.5 - j * 1.5, 1.5, cuff=True)
+    return front, back
+
+
 def build():
     l3 = c3.build()
     json.dump(l3, open('layers3.json', 'w'), separators=(',', ':'))
@@ -391,6 +520,10 @@ def build():
     for g, r in RIG.items():
         put(f'detalhe_{g}', details(r), 'body')
         put(f'cabeca_{g}', head_v3(r), 'head')
+        fr, bk = curls_defined(r)
+        put(f'cabelo_cacheado_{g}', fr, 'head'); put(f'cabelo_cacheado_tras_{g}', bk, 'head')
+        fr, bk = braids(r)
+        put(f'cabelo_volumoso_{g}', fr, 'head'); put(f'cabelo_volumoso_tras_{g}', bk, 'head')
         put(f'rosto_{g}', face_v3(r), 'head')
         put(f'rosto_{g}_piscar', face_v3(r, True), 'head')
         put(f'barba_1_{g}', stubble_v3(r), 'head')
