@@ -9,7 +9,7 @@ _13/11/2026 · branch `redesign` (versão 0.6.0), ainda não publicado._
 | Verificação de tipos (TypeScript) | ✅ sem erros |
 | Testes do app (Vitest) | ✅ 46 de 46 |
 | Build de produção | ✅ |
-| Telas no navegador, tamanho de iPhone (390×844), contra banco local com a conta de teste veterana | ✅ 32 telas sem nenhum erro de página |
+| Telas no navegador, tamanho de iPhone (390×844), contra banco local com a conta de teste veterana | ✅ 33 telas sem nenhum erro de página |
 | Telas de recompensa (vitória, conquista, temporada, nível, título) | ✅ conferidas uma a uma |
 | Backend, migrações SQL, RPCs, XP e dados | ✅ nenhum arquivo de `supabase/` alterado em relação ao `main` |
 | Contraste (WCAG AA 4,5:1) | ✅ todos os pares de texto; `--text-3` ajustado de `#74838F` para `#8494A0` (era 3,9:1 nas chapas mais claras) |
