@@ -20,9 +20,10 @@ def order(c, layers, blink=False):
     if not (cab in render3.HIDE_BACK and s in ('coque', 'volumoso')) and cab not in ('cab_capuz', 'cab_elmo_ferro'):
         out.append(f'cabelo_{s}_tras_{g}')
     if arm in SHOULDER: out.append(f'{arm}_tras_{g}')
-    out += [f'pescoco_{g}', f'corpo_{g}', f'cyber_{g}']
+    out += [f'pescoco_{g}', f'corpo_{g}', f'cyber_{g}', f'detalhe_{g}', f'luva_esq_{g}']
     if arm and arm not in SHOULDER: out.append(f'{arm}_tras_{g}')
     out.append(f'braco_ombro_{g}' if pose == 'ombro' else f'braco_{g}')
+    if pose == 'solto': out.append(f'luva_solto_{g}')
     if sleeve: out += [f'manga_{sleeve}_esq_{g}', f'manga_{sleeve}_{pose}_{g}']
     if cor and cor != 'cor_tunica': out.append(f'{cor}_{g}')
     if amu: out.append(f'{amu}_{g}')
@@ -30,7 +31,7 @@ def order(c, layers, blink=False):
     if pose == 'ombro':
         out.append(f'antebraco_ombro_{g}')
         if sleeve: out.append(f'manga_{sleeve}_ombro_ante_{g}')
-        out += [f'{arm}_{g}', f'mao_ombro_{g}']
+        out += [f'{arm}_{g}', f'mao_ombro_{g}', f'luva_ombro_{g}']
     out += [f'cabeca_{g}', f'implante_{g}', f'rosto_{g}_piscar' if blink else f'rosto_{g}']
     if c.get('barba'): out.append(f"barba_{c['barba']}_{g}")
     if cab not in ('cab_capuz', 'cab_elmo_ferro'): out.append(f'cabelo_{s}_{g}')
@@ -112,6 +113,8 @@ if __name__ == '__main__':
     for c in combos:
         pal = render3.palette(c)
         tiles.append(image(compose(layers, order(c, layers), pal), 4))
-    W = Image.new('RGB', (len(tiles) * 388, 384), '#000')
-    for i, t in enumerate(tiles): W.paste(t, (i * 388, 0))
+    # recorte alto: o personagem ocupa o quadro
+    tiles = [t.crop((22 * 4, 0, 74 * 4, 384)) for t in tiles]
+    W = Image.new('RGB', (len(tiles) * 212, 384), '#000')
+    for i, t in enumerate(tiles): W.paste(t, (i * 212, 0))
     W.save(sys.argv[2]); print('ok')
