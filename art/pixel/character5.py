@@ -254,12 +254,14 @@ def face_v3(r, blink=False):
             X = x0 + k
             t = (X - inn) * (-side) / 9.0 if side < 0 else (X - inn) / 9.0
             t = abs((X - inn) / 9.0)
-            lift = 1 if 0.25 < t < 0.75 else 0
-            if fem and 0.35 < t < 0.65:
-                lift = 2
-            P(X, by - lift, 'H', 1)
-            if t < (0.5 if fem else 0.8):
-                P(X, by - lift + 1, 'H', 0)
+            lift = 1 if 0.2 < t < 0.85 else 0      # sobe do nariz, pico a 2/3, cai na ponta
+            if 0.45 < t < 0.75:
+                lift = 2 if fem else 1
+            if t > 0.95:
+                lift = 0
+            P(X, by - 1 - lift, 'H', 1)
+            if t < (0.25 if fem else 0.55):
+                P(X, by - lift, 'H', 0)
     # nariz: sombra de um lado, ponta com luz, narinas
     nx = 96
     for Y in range(ey + 2, ey + 7):
@@ -309,6 +311,64 @@ def stubble_v3(r):
     return L
 
 
+def head_v3(r):
+    """Cabeça com formato de rosto humano: testa redonda, maçãs na altura dos olhos e
+    maxilar que afina em curva até um queixo arredondado (mais estreito na mulher)."""
+    from engine import Hi, SCALE as S
+    L = Part()
+    hx, hy, rx, ry = r['head']
+    fem = r['female']
+    cy = r['chin'][1] + 0.4
+    cw = 2.3 if fem else 3.1          # meia-largura do queixo
+    p = 1.25 if fem else 1.7          # quanto o maxilar segura a largura antes de afinar
+    top = hy - ry
+    yc = hy + 1.5                     # linha mais larga (maçãs do rosto)
+    M = np.zeros((L.h, L.w), bool)
+    for Y in range(L.h):
+        y = (Y + 0.5) / S
+        if y < top or y > cy:
+            continue
+        if y <= yc:
+            w = (rx + 0.1) * np.sqrt(max(0.0, 1 - ((yc - y) / (yc - top)) ** 2))
+        else:
+            t = (y - yc) / (cy - yc)
+            w = cw + (rx + 0.1 - cw) * (1 - t ** p)
+            rr = 1.6                  # arredonda a ponta do queixo
+            if y > cy - rr:
+                w = min(w, cw * np.sqrt(max(0.0, 1 - ((y - (cy - rr)) / rr) ** 2)) + 0.3)
+        xs = (np.arange(L.w) + 0.5) / S
+        M[Y] = np.abs(xs - hx) <= w
+    face = Hi(M)
+    for ex in (hx - rx + 0.1, hx + rx - 0.1):   # orelhas
+        L.part(); ell(L, ex, hy + 2.0, 1.4, 2.4, 'S', bias=-0.5, spread=2.4, dither=0.16)
+    L.part(); L.ellipsoid(face, hx - 0.6, hy, rx + 0.6, ry + 1.6, 'S', bias=0.15, spread=2.5, dither=0.18)
+    # sombra suave sob a maçã do rosto (lado da sombra) e luz na maçã do lado da luz
+    V = raw(L.lvl); Mt = raw(L.mat)
+    for Y in range(int((hy + 4) * S), int((hy + 6.5) * S)):
+        for X in range(int((hx + rx - 2.6) * S), int((hx + rx - 0.6) * S)):
+            if Mt[Y, X] == 'S' and (X + Y) % 2 == 0 and V[Y, X] > 0:
+                V[Y, X] -= 1
+    # sombra embaixo do queixo
+    for X in range(L.w):
+        col = np.where(M[:, X])[0]
+        if len(col):
+            V[col[-1], X] = max(0, V[col[-1], X] - 1)
+    L.seams()
+    # sombra que o queixo projeta no pescoço: separa o rosto do pescoço
+    nr = r['neck'][2] + 0.6
+    for X in range(L.w):
+        x = (X + 0.5) / S
+        if abs(x - hx) > nr:
+            continue
+        col = np.where(M[:, X])[0]
+        y0 = col[-1] + 1 if len(col) else int(cy * S)
+        depth = int(round((2.4 - 1.2 * (abs(x - hx) / nr) ** 2) * S))
+        for Y in range(y0, min(L.h, y0 + depth)):
+            Mt[Y, X] = 'S'
+            V[Y, X] = 0 if Y - y0 < depth * 0.6 or (X + Y) % 2 else 1
+    return L
+
+
 def build():
     l3 = c3.build()
     json.dump(l3, open('layers3.json', 'w'), separators=(',', ':'))
@@ -330,6 +390,7 @@ def build():
             layers[k] = dict(px=tmp.encode(), part=v['part'])
     for g, r in RIG.items():
         put(f'detalhe_{g}', details(r), 'body')
+        put(f'cabeca_{g}', head_v3(r), 'head')
         put(f'rosto_{g}', face_v3(r), 'head')
         put(f'rosto_{g}_piscar', face_v3(r, True), 'head')
         put(f'barba_1_{g}', stubble_v3(r), 'head')
