@@ -43,9 +43,10 @@ export function AuthScreen() {
 
   return (
     <div className="screen no-tabs" style={{ minHeight: '100dvh', justifyContent: 'center' }}>
-      <div className="stack" style={{ alignItems: 'center', marginBottom: 8 }}>
-        <img src="/icon.svg" width={72} height={72} alt="" style={{ borderRadius: 18 }} />
-        <h1>Forja</h1>
+      <div className="auth-hero">
+        <img src="/icon.svg" width={104} height={104} alt="" />
+        <span className="auth-kicker">Sistema de evolução · 66 dias</span>
+        <h1 className="auth-word">FORJA</h1>
         <p className="muted center">Evolua na vida real. Seu personagem evolui junto.</p>
       </div>
 
