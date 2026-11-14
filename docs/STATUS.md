@@ -9,7 +9,18 @@ _Atualizado em 13/11/2026._
 | 3 · Gamificação | ✅ no ar (banco com `0004_rpg.sql`) |
 | 4 · Sistemas avançados | ✅ no ar em forja-kappa-wheat.vercel.app (banco com `0005_etapa4.sql`); notificações no ar (banco com `0006_notificacoes.sql`) |
 | 5 · Premium | ✅ estrutura no ar (Premium liberado para todos; falta só o administrador decidir a data de fim) |
-| 6 · Testes com amigos e lançamento | em andamento: reavaliação do dia 61 no ar (versão 0.5); próximos ajustes vêm do uso real |
+| 6 · Testes com amigos e lançamento | em andamento: versão 0.7 (redesign, Caminho Sagrado, Mentor corrigido); próximos ajustes vêm do uso real |
+
+## Versão 0.7 · Redesign, Caminho Sagrado e Mentor (14/11/2026)
+
+| Área | O que mudou |
+|---|---|
+| Backup | Versão anterior ao redesign guardada no branch `backup/v0.5.1` (commit `5ce9ce2`). Para voltar o app, basta publicar esse branch na Vercel (ou usar "Instant Rollback" no painel da Vercel). |
+| Redesign | Visual "Cyberforge Industrial" no ar (detalhes em `docs/redesign/`). Personagem por IA e chefes em tamanho grande ficaram para depois. |
+| Caminho Sagrado | Atributo opcional **Sagrado** (dedicação entregue a Deus) e área **Vida espiritual**, com 5 práticas: Devocional, Leitura bíblica, Meditação na Palavra, Louvor e Gratidão a Deus. A pessoa ativa em Perfil → Caminho Sagrado (ou pelo convite no Início / Atributos), escolhe as práticas e elas entram nas missões do mesmo dia. 70% da XP de cada prática vai para o Sagrado. O gráfico de atributos vira hexágono, há 5 conquistas próprias (Primeiro altar, Sete dias na Palavra, Raízes profundas, Aliança de 66 dias, Altar aceso) e missões personalizadas e desafios podem usar a área espiritual. Pausar não apaga nada. Quem não ativa não vê nada disso; amigos só veem o Sagrado de quem ativou. |
+| Mentor | "Ritmo firme" e "Ritmo mais lento" não aparecem mais juntos: a tendência compara só dias completos, exige uma diferença real e, quando a meta segue cumprida, mostra "Semana mais leve". |
+| Banco | `0007_sagrado.sql` (pode rodar mais de uma vez; não altera XP, níveis, conquistas nem itens existentes). |
+| Testes | 47 testes do app, todas as suítes do banco (nova: `70_sagrado_test.sql`, que também reproduz e confirma a correção do Mentor) e o fluxo completo no navegador: ativar, praticar, ganhar Sagrado, ver o hexágono. |
 
 ## Etapa 4 · Sistemas avançados
 
