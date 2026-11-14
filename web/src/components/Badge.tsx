@@ -1,15 +1,24 @@
 import { useId } from 'react';
 import type { AchievementCategory, Rarity } from '../lib/types';
 
-const RARITY_FILL: Record<Rarity, [string, string]> = {
-  comum: ['#C9D0DB', '#6B7382'],
-  raro: ['#9CCBFF', '#2F6FC4'],
-  epico: ['#D8C0FF', '#7A4FD6'],
-  lendario: ['#FFDD95', '#E0662A'],
+// Insígnia Cyberforge: chassi octogonal de metal, tela escura e símbolo aceso na cor da raridade.
+// Raridade = metal do chassi + marcas no topo (1 a 4) + energia (raro em diante) + raios (lendário).
+const RARITY: Record<Rarity, { metal: [string, string]; glow: string; marks: number }> = {
+  comum: { metal: ['#B9C3CE', '#4A5866'], glow: '#D6DEE6', marks: 1 },
+  raro: { metal: ['#8FD8E8', '#1F5E74'], glow: '#39D5D0', marks: 2 },
+  epico: { metal: ['#C9B2FF', '#4B2E91'], glow: '#B48CFF', marks: 3 },
+  lendario: { metal: ['#FFD58A', '#B4501E'], glow: '#FFB45E', marks: 4 },
 };
+const LOCKED = { metal: ['#3A4652', '#1B2630'] as [string, string], glow: '#5E6B78', marks: 0 };
 
-const OUTER = 'M32 3 L57 17.5 L57 46.5 L32 61 L7 46.5 L7 17.5 Z';
-const INNER = 'M32 9.5 L51.5 20.8 L51.5 43.2 L32 54.5 L12.5 43.2 L12.5 20.8 Z';
+// Octógono com cantos chanfrados (mesma linguagem das chapas do app)
+const oct = (m: number) => {
+  const a = m, b = 64 - m, c = m + (64 - 2 * m) * 0.29, d = 64 - c;
+  return `M${c} ${a} L${d} ${a} L${b} ${c} L${b} ${d} L${d} ${b} L${c} ${b} L${a} ${d} L${a} ${c} Z`;
+};
+const OUTER = oct(3);
+const RIM = oct(7.5);
+const INNER = oct(10.5);
 
 function star(cx: number, cy: number, r1: number, r2: number) {
   const pts: string[] = [];
@@ -42,7 +51,7 @@ function Glyph({ category, c }: { category: AchievementCategory | 'oculta'; c: s
     case 'social': return <g><circle cx="26.5" cy="27.5" r="4.6" fill={c} /><circle cx="38" cy="27.5" r="4.6" fill={c} opacity="0.75" /><path d="M18.5 42.5 C19.5 36.5 22.5 34 26.5 34 C30.5 34 33.5 36.5 34.5 42.5 Z" fill={c} /><path d="M31.5 35.2 C33.2 34.4 35.4 34 38 34 C42 34 44.8 36.5 45.6 42.5 L36.4 42.5" fill={c} opacity="0.75" /></g>;
     case 'temporadas': return <g><path d="M24 21 H40 V27.5 C40 32.5 36.5 35.5 32 35.5 C27.5 35.5 24 32.5 24 27.5 Z" fill={c} /><path d="M24 23.5 H20.5 C20.5 28 22 30 24.8 30.5 M40 23.5 H43.5 C43.5 28 42 30 39.2 30.5" {...stroke} strokeWidth={2.2} /><path d="M32 35.5 V40 M26.5 43.5 H37.5" {...stroke} /></g>;
     case 'ferramentas': return <g><path d="M36.5 20.5 A6.5 6.5 0 0 0 30 29 L21.5 37.5 A2.6 2.6 0 0 0 25.2 41.2 L33.7 32.7 A6.5 6.5 0 0 0 42.2 26.2 L38.3 30.1 L35 29.4 L34.3 26.1 Z" fill={c} /></g>;
-    default: return <text x="32" y="39.5" textAnchor="middle" fontSize="20" fontWeight="700" fill={c} fontFamily="Sora, sans-serif">?</text>;
+    default: return <text x="32" y="39.5" textAnchor="middle" fontSize="20" fontWeight="700" fill={c} fontFamily="Space Grotesk, sans-serif">?</text>;
   }
 }
 
@@ -50,19 +59,47 @@ export function Badge({ category, rarity, locked, hidden, size = 56 }: {
   category: AchievementCategory; rarity: Rarity; locked?: boolean; hidden?: boolean; size?: number;
 }) {
   const uid = useId().replace(/:/g, '');
-  const [light, dark] = locked ? ['#454B58', '#2A2E37'] : RARITY_FILL[rarity];
-  const glyphColor = locked ? '#6C7383' : light;
+  const r = locked ? LOCKED : RARITY[rarity];
+  const [light, dark] = r.metal;
+  const glyphColor = locked ? '#6C7986' : r.glow;
+  const lit = !locked && rarity !== 'comum';
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
       <defs>
-        <linearGradient id={`${uid}-g`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={light} /><stop offset="1" stopColor={dark} />
+        <linearGradient id={`${uid}-m`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={light} /><stop offset="0.55" stopColor={dark} /><stop offset="1" stopColor={light} stopOpacity="0.85" />
         </linearGradient>
+        <radialGradient id={`${uid}-s`} cx="0.5" cy="0.42" r="0.62">
+          <stop offset="0" stopColor={locked ? '#1B2630' : '#1C2833'} /><stop offset="1" stopColor="#0A0F14" />
+        </radialGradient>
+        <filter id={`${uid}-f`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.4" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
       </defs>
-      {!locked && <path d={OUTER} fill={light} opacity="0.18" transform="translate(32 32) scale(1.08) translate(-32 -32)" />}
-      <path d={OUTER} fill={`url(#${uid}-g)`} />
-      <path d={INNER} fill="#151821" />
-      <Glyph category={locked && hidden ? 'oculta' : category} c={glyphColor} />
+      {/* Raios do lendário */}
+      {!locked && rarity === 'lendario' && (
+        <g fill={r.glow} opacity="0.55">
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => <path key={a} d="M32 -1 L34 5 L30 5 Z" transform={`rotate(${a + 22.5} 32 32)`} />)}
+        </g>
+      )}
+      {lit && <path d={OUTER} fill={r.glow} opacity="0.16" transform="translate(32 32) scale(1.07) translate(-32 -32)" />}
+      {/* Chassi de metal */}
+      <path d={OUTER} fill={`url(#${uid}-m)`} />
+      <path d={RIM} fill="none" stroke="#0A0F14" strokeOpacity="0.55" strokeWidth="1" />
+      {[[12.5, 12.5], [51.5, 12.5], [12.5, 51.5], [51.5, 51.5]].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill="#0A0F14" opacity="0.6" />
+      ))}
+      {/* Tela */}
+      <path d={INNER} fill={`url(#${uid}-s)`} stroke={locked ? '#30414D' : r.glow} strokeOpacity={locked ? 1 : 0.45} strokeWidth="0.8" />
+      {lit && <path d={INNER} fill="none" stroke={r.glow} strokeWidth="1.4" strokeDasharray="6 4" opacity="0.35" transform="translate(32 32) scale(0.86) translate(-32 -32)" />}
+      {/* Marcas de raridade no topo */}
+      {Array.from({ length: r.marks }, (_, i) => (
+        <rect key={i} x={32 - (r.marks * 5 - 1.8) / 2 + i * 5} y="3.4" width="3.2" height="3.2" fill="#0A0F14" stroke={r.glow} strokeWidth="0.9" />
+      ))}
+      <g filter={locked ? undefined : `url(#${uid}-f)`}>
+        <Glyph category={locked && hidden ? 'oculta' : category} c={glyphColor} />
+      </g>
     </svg>
   );
 }
