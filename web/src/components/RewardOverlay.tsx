@@ -7,6 +7,7 @@ import { RARITY, SLOTS, avatarOf, midName, titleName } from '../lib/rpg';
 import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { BossArt } from './BossArt';
+import { Emblem } from './Emblem';
 import { useFeedback } from './Feedback';
 import { LeagueBadge } from './Social';
 import { metricUnit, plural } from '../lib/social';
@@ -30,6 +31,11 @@ export function groupEvents(events: GameEvent[]): QueueItem[] {
     }
   }
   return out;
+}
+
+/** Feixe de luz girando atrás da arte da recompensa (cor da raridade ou da forja). */
+export function Beam({ color }: { color?: string }) {
+  return <div className="beam" aria-hidden style={color ? ({ '--beam': color } as CSSProperties) : undefined} />;
 }
 
 export function Sparks({ count = 16 }: { count?: number }) {
@@ -109,8 +115,11 @@ export function RewardOverlay() {
       body = (
         <>
           <span className="tiny muted">Você subiu de nível</span>
-          <div className="reward-art pop"><Sparks /><Avatar config={avatar} size={150} /></div>
-          <span className="reward-big num">{e.data.level}</span>
+          <div className="reward-art pop"><Beam /><Sparks /><Avatar config={avatar} size={150} /></div>
+          <div className="level-up">
+            <Emblem level={e.data.level} size={72} showLevel={false} />
+            <span className="reward-big num">{e.data.level}</span>
+          </div>
           <span className="muted">{titleName(profile, e.data.level, catalogs?.items)}</span>
         </>
       );
@@ -119,7 +128,7 @@ export function RewardOverlay() {
       body = (
         <>
           <span className="tiny muted">Conquista desbloqueada</span>
-          <div className="reward-art pop"><Sparks count={12} /><Badge category={e.data.category} rarity={e.data.rarity} size={112} /></div>
+          <div className="reward-art pop"><Beam color={RARITY[e.data.rarity].color} /><Sparks count={12} /><Badge category={e.data.category} rarity={e.data.rarity} size={112} /></div>
           <h2>{e.data.name}</h2>
           <p className="muted center">{e.data.description}</p>
           <div className="row" style={{ gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -136,6 +145,7 @@ export function RewardOverlay() {
         <>
           <span className="tiny muted">{it.kind === 'titulo' ? 'Novo título' : 'Novo equipamento'}</span>
           <div className="reward-art pop">
+            <Beam color={RARITY[it.rarity].color} />
             <Sparks count={12} />
             {it.kind === 'equipamento' && it.slot
               ? <Avatar config={avatar} size={150} preview={{ slot: it.slot, item: it.id }} />
@@ -165,7 +175,7 @@ export function RewardOverlay() {
       body = (
         <>
           <span className="tiny muted">{e.data.boss.epithet}</span>
-          <div className="reward-art boss-defeat"><Sparks count={20} /><BossArt id={e.data.boss.id} size={170} defeated damage={1} /></div>
+          <div className="reward-art boss-defeat"><Beam /><Sparks count={20} /><BossArt id={e.data.boss.id} size={170} defeated damage={1} /></div>
           <span className="reward-big">Vitória!</span>
           <p className="muted center">
             Você venceu {midName(e.data.boss.name)} com {e.data.fight.hp} golpes
@@ -199,7 +209,7 @@ export function RewardOverlay() {
       body = (
         <>
           <span className="tiny muted">{d.name} de {d.year} encerrada</span>
-          <div className="reward-art pop"><Sparks count={18} /><LeagueBadge league={d.league.id} size={130} /></div>
+          <div className="reward-art pop"><Beam /><Sparks count={18} /><LeagueBadge league={d.league.id} size={130} /></div>
           <h2>Liga {d.league.name}</h2>
           <p className="muted center">
             {plural(d.points, 'ponto', 'pontos')} · meta cumprida em {plural(d.goal_days, 'dia', 'dias')}

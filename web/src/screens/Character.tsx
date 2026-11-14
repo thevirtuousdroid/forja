@@ -19,6 +19,7 @@ export function CharacterScreen() {
   const { stats, profile, missions, catalogs, today } = useApp();
   const [ledger, setLedger] = useState<(LedgerEntry & { label: string })[] | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     Promise.all([api.ownedItems(), api.unlockedAchievements(), api.defeatedBosses()])
@@ -108,7 +109,7 @@ export function CharacterScreen() {
         <Empty title="Nenhum XP ainda"><span className="small">Conclua sua primeira missão para começar o histórico.</span></Empty>
       ) : (
         <div className="card stack">
-          {ledger.map((l) => (
+          {(showAll ? ledger : ledger.slice(0, 8)).map((l) => (
             <div key={l.id} className="row between small">
               <div className="grow" style={{ minWidth: 0 }}>
                 <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</div>
@@ -117,6 +118,11 @@ export function CharacterScreen() {
               <span className="num" style={{ color: 'var(--accent-2)' }}>+{l.amount}</span>
             </div>
           ))}
+          {ledger.length > 8 && (
+            <button className="btn ghost block" onClick={() => setShowAll((v) => !v)}>
+              {showAll ? 'Mostrar menos' : `Ver tudo (${ledger.length})`}
+            </button>
+          )}
         </div>
       )}
     </div>

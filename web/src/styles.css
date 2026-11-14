@@ -482,3 +482,20 @@ h2::before { content: ''; width: 14px; height: 2px; background: var(--accent); b
 .switch::after { border-radius: 2px; }
 .swatch, .accent-swatch { border-radius: 6px; }
 .radar text { font-family: var(--font-mono); font-size: 9.5px; }
+
+/* Recompensas · Cyberforge: chapa, feixe de luz e emblema */
+.reward { position: relative; padding: 22px 18px 18px; background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--bg) 92%, transparent));
+  border: 1px solid var(--line-hi); clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+.reward::before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+.reward > .tiny:first-of-type { letter-spacing: .14em; }
+.reward-art { isolation: isolate; }
+.reward-art > :not(.beam):not(.sparks) { position: relative; z-index: 1; }
+.beam { --beam: var(--accent); position: absolute; width: 260px; height: 260px; left: 50%; top: 50%; margin: -130px 0 0 -130px; z-index: 0; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--beam) 34%, transparent) 0deg 7deg, transparent 7deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: beam-spin 14s linear infinite, fade .6s ease-out; }
+@keyframes beam-spin { to { transform: rotate(360deg); } }
+.level-up { display: flex; align-items: center; gap: 4px; margin-top: -6px; }
+.level-up .reward-big { font-size: 48px; }
+.title-plate { position: relative; z-index: 1; font-family: var(--font-display); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+@media (prefers-reduced-motion: reduce) { .beam { animation: none; } }
