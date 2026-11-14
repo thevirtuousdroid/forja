@@ -5,7 +5,7 @@ e as junções entre partes ganham uma linha de sombra, como em pixel art desenh
 """
 import json, sys
 import numpy as np
-from engine import Layer, LIGHT
+from engine import Layer, LIGHT, raw, SCALE
 
 N = 96
 
@@ -14,7 +14,7 @@ class Part(Layer):
     """Camada que lembra qual parte pintou cada pixel, para marcar as junções."""
     def __init__(self):
         super().__init__(N, N)
-        self.pid = np.zeros((N, N), int)
+        self.pid = np.zeros((self.h, self.w), int)
         self.cur = 0
 
     def part(self):
@@ -23,23 +23,32 @@ class Part(Layer):
 
     def _put(self, mask, mat, lvl):
         super()._put(mask, mat, lvl)
-        self.pid[mask] = self.cur
+        self.pid[raw(mask)] = self.cur
 
     def seams(self, strength=1):
         """Junção entre partes: o pixel da parte de cima fica um tom mais escuro na borda (baixo e lados)."""
-        on = self.mat != ''
-        out = self.lvl.copy()
-        for y in range(N):
-            for x in range(N):
-                if not on[y, x]:
-                    continue
-                for dy, dx in ((1, 0), (0, -1), (0, 1)):
-                    yy, xx = y + dy, x + dx
-                    if 0 <= yy < N and 0 <= xx < N and on[yy, xx] and self.pid[yy, xx] != self.pid[y, x] \
-                            and self.pid[y, x] > self.pid[yy, xx]:
-                        out[y, x] = max(0, self.lvl[y, x] - strength)
-                        break
-        self.lvl = out
+        on = raw(self.mat) != ''
+        pid = self.pid
+        lvl = raw(self.lvl)
+        hit = np.zeros_like(on)
+        for dy, dx in ((1, 0), (0, -1), (0, 1)):
+            nb_on = np.zeros_like(on); nb_pid = np.zeros_like(pid)
+            ys = slice(max(dy, 0), self.h + min(dy, 0)); yd = slice(max(-dy, 0), self.h + min(-dy, 0))
+            xs = slice(max(dx, 0), self.w + min(dx, 0)); xd = slice(max(-dx, 0), self.w + min(-dx, 0))
+            nb_on[yd, xd] = on[ys, xs]; nb_pid[yd, xd] = pid[ys, xs]
+            hit |= on & nb_on & (nb_pid != pid) & (pid > nb_pid)
+        lvl[hit] = np.maximum(0, lvl[hit] - strength)
+        # bisel: a borda de cima e da esquerda de cada peça pega a luz (1 pixel fino)
+        lit = np.zeros_like(on)
+        for dy, dx in ((-1, 0), (0, -1)):
+            nb_on = np.zeros_like(on); nb_pid = np.zeros_like(pid)
+            ys = slice(max(dy, 0), self.h + min(dy, 0)); yd = slice(max(-dy, 0), self.h + min(-dy, 0))
+            xs = slice(max(dx, 0), self.w + min(dx, 0)); xd = slice(max(-dx, 0), self.w + min(-dx, 0))
+            nb_on[yd, xd] = on[ys, xs]; nb_pid[yd, xd] = pid[ys, xs]
+            lit |= on & (~nb_on | (nb_pid != pid)) & ~hit
+        mats = raw(self.mat)
+        keep = lit & ~np.isin(mats, ['O', 'T', 'P', 'W', 'K', 'I'])
+        lvl[keep] = np.minimum(4, lvl[keep] + 1)
 
 
 def mirror(p):

@@ -5,7 +5,7 @@ Materiais novos: B aço azul · G pedra-verde · Y ouro · V tecido roxo · F te
 """
 import json, sys
 import numpy as np
-from engine import Layer
+from engine import Layer, raw, SCALE
 from character2 import (N, Part, RIG, mirror, ell, body, head, face, hair as hair_v2, armor as plates, helmet as iron_helm,
                         grip, right_arm, hammer_shoulder)
 
@@ -94,7 +94,7 @@ def beard(kind, r):
     cheeks_cut = L.mask_poly([(hx - rx + 2, hy - 2), (hx + rx - 2, hy - 2), (hx + rx - 2.5, my - 2.2), (hx - rx + 2.5, my - 2.2)])
     m = jaw & ~cheeks_cut
     if kind == 1:  # por fazer: pontilhado
-        yy, xx = np.mgrid[0:N, 0:N]
+        yy, xx = L.hgrid()
         dots = m & (((xx * 3 + yy * 5) % 7) == 0)
         L.flat(dots, 'H', 2)
         for x in (46, 48, 50):
@@ -134,12 +134,13 @@ def hood(r):
     drape = front.mask_poly([(hx - rx - 3.2, hy + 1), (hx - rx + 0.5, hy + 4), (hx - 3, hy + 13), (hx + 3, hy + 13), (hx + rx - 0.5, hy + 4),
                              (hx + rx + 3.2, hy + 1), (hx + rx + 4.6, hy + 12.5), (hx - rx - 4.6, hy + 12.5)])
     m = (outer | drape) & ~inner
-    m[int(hy + 12):, :] &= drape[int(hy + 12):, :]
+    cut = int(hy + 12) * SCALE
+    raw(m)[cut:, :] &= raw(drape)[cut:, :]
     front.part(); front.ellipsoid(m, hx - 2, hy - 2, rx + 5, ry + 8, 'D', bias=0.15, spread=2.6, dither=0.14)
     rim = inner & ~front.mask_ellipse(hx, hy + 1.6, rx - 1.1, ry - 1.4)
-    for (yy, xx) in zip(*np.where(rim)):
-        if yy < hy + 2:
-            front.px(xx, yy, 'T', 3 if (xx + yy) % 3 else 4)
+    for (yy, xx) in zip(*np.where(raw(rim))):
+        if yy / SCALE < hy + 2:
+            front.px1(xx / SCALE, yy / SCALE, 'T', 3 if (xx + yy) % 3 else 4)
     for y in range(int(hy - ry - 1), int(hy - 1)):
         front.px(int(hx), y, 'D', 0)
     front.seams()

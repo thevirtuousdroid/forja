@@ -5,6 +5,7 @@ Gera layers4.json (todas as camadas de character3 + as novas, que substituem as 
 """
 import json, sys
 import numpy as np
+from engine import raw, SCALE
 from character2 import N, Part, RIG, mirror, ell, grip
 import character3 as c3
 
@@ -116,8 +117,8 @@ def holo_halo(r):
     hx, hy, rx, ry = r['head']
     cy_ = hy - ry - 2.6
     ring = L.mask_ellipse(hx, cy_, rx + 2.6, 2.0) & ~L.mask_ellipse(hx, cy_, rx + 1.2, 0.9)
-    for (yy, xx) in zip(*np.where(ring)):
-        L.px(xx, yy, 'O', 4 if yy < cy_ else 3)
+    for (yy, xx) in zip(*np.where(raw(ring))):
+        L.px1(xx / SCALE, yy / SCALE, 'O', 4 if yy / SCALE < cy_ else 3)
     for dx in (-5, 0, 5):  # pontas de luz
         L.px(int(hx + dx), int(cy_ - 2.2), 'O', 4)
         L.px(int(hx + dx), int(cy_ - 3.2), 'O', 3)

@@ -39,7 +39,8 @@ def order(c, layers, blink=False):
     return [n for n in out if n in layers]
 
 
-def compose(layers, names, pal, w=96, h=96):
+def compose(layers, names, pal, w=None, h=None):
+    w = h = int(round((len(layers[names[0]]['px']) / 2) ** 0.5))
     img = np.zeros((h, w, 4))
     for n in names:
         cells = decode(layers[n]['px'])
@@ -74,8 +75,9 @@ def compose(layers, names, pal, w=96, h=96):
 
 def image(rgba, scale=4, bg='#0a0d16'):
     h, w = rgba.shape[:2]
+    unit = h / 96
     a = rgba[..., 3:4]; rgb = rgba[..., :3]; bgc = hx(bg)
-    yy, xx = np.mgrid[0:h * scale, 0:w * scale] / scale
+    yy, xx = np.mgrid[0:h * scale, 0:w * scale] / (scale * unit)
     canvas = np.ones((h * scale, w * scale, 3)) * bgc
     canvas += (np.exp(-(((xx + 4) / 22) ** 2 + ((yy - 40) / 40) ** 2)) * 0.5)[..., None] * (hx('#ff3fa8') - bgc) * 0.45
     canvas += (np.exp(-(((xx - 100) / 22) ** 2 + ((yy - 40) / 40) ** 2)) * 0.5)[..., None] * (hx('#39d5d0') - bgc) * 0.45
@@ -83,20 +85,22 @@ def image(rgba, scale=4, bg='#0a0d16'):
     # cidade ao fundo: prédios escuros com janelas acesas
     rng = np.random.default_rng(3)
     for k in range(9):
-        bx0 = int(rng.integers(0, w - 8)); bw = int(rng.integers(6, 14)); bh = int(rng.integers(20, 55))
-        x0, x1, y0 = bx0 * scale, (bx0 + bw) * scale, (h - bh) * scale
+        bx0 = int(rng.integers(0, 88)); bw = int(rng.integers(6, 14)); bh = int(rng.integers(20, 55))
+        k_ = scale * unit
+        x0, x1, y0 = int(bx0 * k_), int((bx0 + bw) * k_), int((96 - bh) * k_)
         canvas[y0:, x0:x1] = canvas[y0:, x0:x1] * 0.55 + hx('#0e1420') * 0.45
         for _ in range(bw * bh // 25):
-            wx = int(rng.integers(bx0 + 1, bx0 + bw - 1)) * scale; wy = int(rng.integers(h - bh + 2, h - 4)) * scale
+            wx = int(int(rng.integers(bx0 + 1, bx0 + bw - 1)) * k_); wy = int(int(rng.integers(96 - bh + 2, 92)) * k_)
             col = hx('#ff3fa8') if rng.random() < 0.3 else hx('#39d5d0') if rng.random() < 0.5 else hx('#ffb45e')
-            canvas[wy:wy + scale, wx:wx + scale] = canvas[wy:wy + scale, wx:wx + scale] * 0.6 + col * 0.25
+            kk = int(k_)
+            canvas[wy:wy + kk, wx:wx + kk] = canvas[wy:wy + kk, wx:wx + kk] * 0.7 + col * 0.18
     canvas *= (1 - (np.exp(-(((xx - 48) / 16) ** 2 + ((yy - 92) / 2.2) ** 2)) * 0.7)[..., None])
     up = np.kron(rgb, np.ones((scale, scale, 1))); ua = np.kron(a, np.ones((scale, scale, 1)))
     canvas = canvas * (1 - ua) + up * ua
     lum = np.zeros((h, w, 3))
     for cc in ('#ffb45e', '#fff0d6', '#e6fffd', '#8ff0ea', '#ff9ad8', '#e040a8'):
         mm = np.all(np.abs(rgb - hx(cc)) < 8, axis=-1) & (a[..., 0] > 0); lum[mm] = hx(cc)
-    L = Image.fromarray(np.uint8(np.kron(lum, np.ones((scale, scale, 1))))).filter(ImageFilter.GaussianBlur(scale * 2.5))
+    L = Image.fromarray(np.uint8(np.kron(lum, np.ones((scale, scale, 1))))).filter(ImageFilter.GaussianBlur(scale * unit * 2.5))
     canvas = 255 - (255 - canvas) * (255 - np.asarray(L, float) * 0.9) / 255
     return Image.fromarray(np.uint8(np.clip(canvas, 0, 255)))
 
@@ -112,7 +116,7 @@ if __name__ == '__main__':
     tiles = []
     for c in combos:
         pal = render3.palette(c)
-        tiles.append(image(compose(layers, order(c, layers), pal), 4))
+        tiles.append(image(compose(layers, order(c, layers), pal), 2))
     # recorte alto: o personagem ocupa o quadro
     tiles = [t.crop((22 * 4, 0, 74 * 4, 384)) for t in tiles]
     W = Image.new('RGB', (len(tiles) * 212, 384), '#000')
