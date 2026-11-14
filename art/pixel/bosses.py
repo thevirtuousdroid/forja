@@ -52,6 +52,68 @@ def eye_slit(L, cx, cy, w, mat='O', angry=0):
         L.px1(cx + k * 0.5, cy + dy * 0.5 + 0.5, mat, 2)
 
 
+# ── acabamento: painéis, rebites, desgaste e luz refletida ──────────────────
+
+METAL = ('D', 'M', 'J', 'Y', 'G', 'R')
+EMIS = ('O', 'T', 'P', 'B')
+
+
+def detail_pass(L, seed=0, panels=True, bounce=True, min_area=260):
+    from scipy import ndimage as ndi
+    M, V, pid = raw(L.mat), raw(L.lvl), L.pid
+    rng = np.random.default_rng(seed)
+    out = V.copy()
+    for p in np.unique(pid[M != '']):
+        if p == 0:
+            continue
+        m = (pid == p) & (M != '')
+        mats = M[m]
+        if len(mats) < min_area or not np.isin(mats[0], METAL):
+            continue
+        d = ndi.distance_transform_edt(m)
+        if panels and d.max() > 9:
+            g = m & (d >= 5) & (d < 6)
+            out[g] = np.maximum(0, V[g] - 1)
+            hl = m & (d >= 6) & (d < 7)
+            up = np.zeros_like(g); up[1:] = g[:-1]
+            lf = np.zeros_like(g); lf[:, 1:] = g[:, :-1]
+            h_ = hl & (up | lf)
+            out[h_] = np.minimum(4, V[h_] + 1)
+            ys, xs = np.where(g)
+            if len(ys):
+                order = np.lexsort((xs, ys))
+                for i in order[::23]:  # rebites
+                    y, x = ys[i], xs[i]
+                    if m[y + 1, x + 1]:
+                        out[y, x] = 4; out[y + 1, x + 1] = max(0, V[y + 1, x + 1] - 2); out[y, x + 1] = 3; out[y + 1, x] = 2
+        edge = m & (d < 2.5)
+        chip = edge & (rng.random(m.shape) < 0.05)
+        out[chip] = np.minimum(4, V[chip] + 1)
+        ys_ = np.where(m)[0]
+        y0, y1 = ys_.min(), ys_.max()
+        low = m & (np.arange(m.shape[0])[:, None] > y0 + (y1 - y0) * 0.7) & (rng.random(m.shape) < 0.06)
+        out[low] = np.maximum(0, V[low] - 1)
+        scr = m & (d > 3) & (rng.random(m.shape) < 0.004)  # arranhões curtos
+        for y, x in zip(*np.where(scr)):
+            for k in range(3):
+                if m[y + k, x + k]:
+                    out[y + k, x + k] = min(4, V[y + k, x + k] + 1)
+    V[:] = out
+    if bounce:  # luz das partes acesas refletida no metal vizinho
+        for e in EMIS:
+            em = M == e
+            if em.sum() < 6:
+                continue
+            dist = ndi.distance_transform_edt(~em)
+            near = np.isin(M, METAL) & (dist <= 3) & (dist > 0)
+            I = np.indices(M.shape)
+            pat = ((I[0] % 2) == 0) & ((I[1] % 2) == 0) | ((dist <= 1.5) & ((I.sum(0) % 2) == 0))
+            pick = near & pat & (V >= 1)
+            M[pick] = e
+            V[pick] = np.where(dist[pick] <= 1.5, 1, 0)
+    return L
+
+
 # ── 1. A Tempestade Interna ─────────────────────────────────────────────────
 
 def tempestade(f):
@@ -465,7 +527,7 @@ def render_all(outdir='bosses_px', only=None):
             continue
         frames = []
         for fr in range(4):
-            Lb = fn(fr)
+            Lb = detail_pass(fn(fr), seed=fr)
             rgba = render4.compose({'b': {'px': Lb.encode()}}, ['b'], p)
             frames.append(rgba)
         sheet = np.concatenate(frames, axis=1)
