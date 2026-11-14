@@ -1,0 +1,257 @@
+<title>Forja em Pixel Art</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Layout: coluna de celular; palco do personagem fixo no topo enquanto rola as escolhas. */
+:root {
+  --bg: #080c10; --surface: #111820; --surface-2: #1b2630; --line: #30414d; --line-hi: #4a6070;
+  --text: #ecf2f5; --muted: #a1afba; --accent: #ff7138; --accent-2: #ffb45e; --tech: #39d5d0;
+  --display: "Space Grotesk", system-ui, sans-serif; --body: Inter, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px; }
+main { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.kicker { font: 500 11px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--tech); }
+h1 { font: 700 26px/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0;
+  display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 14px; height: 2px; background: var(--accent); }
+p { margin: 0; color: var(--muted); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-bottom: 8px; display: flex; gap: 10px; align-items: stretch; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.stage { position: relative; aspect-ratio: 1; flex: 1 1 auto; min-width: 0; max-width: 100%; overflow: hidden; border: 1px solid var(--line);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  background: radial-gradient(60% 35% at 50% 100%, rgba(255,113,56,.32), transparent 70%),
+              radial-gradient(40% 60% at 105% 40%, rgba(57,213,208,.20), transparent 70%),
+              radial-gradient(80% 70% at 50% 40%, #16202b, #080c10); }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.stage .glow { filter: blur(9px); mix-blend-mode: screen; opacity: .85; animation: pulse 2.4s ease-in-out infinite; }
+.stage .shadow { position: absolute; left: 34%; right: 34%; bottom: 3.4%; height: 3%; border-radius: 50%; background: rgba(0,0,0,.6); filter: blur(3px); }
+@keyframes pulse { 50% { opacity: .45; } }
+.side { display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; width: 30%; min-width: 0; }
+.side figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 500 10px var(--mono); color: var(--muted); }
+.side canvas { image-rendering: pixelated; width: 100%; max-width: 112px; height: auto; aspect-ratio: 1; }
+@media (prefers-reduced-motion: reduce) { .stage .glow { animation: none; } }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 13px var(--body); color: var(--text); background: var(--surface); border: 1px solid var(--line); min-height: 44px; padding: 0 12px; cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+button[aria-pressed="true"] { border-color: var(--accent); background: #2a160c; }
+button:focus-visible { outline: 2px solid var(--tech); outline-offset: 2px; }
+.sw { width: 44px; padding: 0; position: relative; }
+.sw span { position: absolute; inset: 9px; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.sw[aria-pressed="true"] { border-color: var(--tech); background: var(--surface-2); }
+.note { font-size: 13px; border-left: 2px solid var(--tech); padding-left: 10px; color: var(--muted); }
+.rand { align-self: flex-start; }
+</style>
+<main>
+  <span class="kicker">Forja · personagem completo</span>
+  <h1>Todas as opções em pixel art</h1>
+  <p>Monte o personagem: aparência e os 27 equipamentos do app. O palco fica no topo enquanto você rola.</p>
+
+  <div class="top">
+    <div class="stage" aria-label="Personagem animado"><div class="shadow"></div><canvas id="char" width="96" height="96"></canvas><canvas id="charGlow" class="glow" width="96" height="96"></canvas></div>
+    <div class="side">
+      <figure><canvas id="port" width="48" height="48"></canvas>perfil</figure>
+      <figure><canvas id="port2" width="48" height="48" style="max-width:56px"></canvas>social</figure>
+    </div>
+  </div>
+  <button class="rand" type="button" id="rand">Sortear um personagem</button>
+  <div id="groups" class="stack"></div>
+  <p class="note">Cada peça é uma camada do mesmo desenho; as cores vêm de paletas. Algumas armas mudam a pose: os martelos vão para o ombro, o cajado e a lâmina ficam na mão.</p>
+</main>
+<script>
+/*DATA*/
+const W = 96, WP = 48;
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const STYLES = ['raspado', 'curto', 'franja', 'cacheado', 'longo', 'coque', 'volumoso', 'sem'];
+const STYLE_LABEL = ['Raspado', 'Curto', 'Franja', 'Cacheado', 'Longo', 'Coque', 'Volumoso', 'Sem cabelo'];
+const ITEMS = {
+  cabeca: [['cab_faixa', 'Faixa de ferreiro'], ['cab_capuz', 'Capuz do viajante'], ['cab_elmo_silencio', 'Elmo do Silêncio'], ['cab_elmo_ferro', 'Elmo de ferro'], ['cab_coroa', 'Coroa de brasa']],
+  corpo: [['cor_tunica', 'Túnica de aprendiz'], ['cor_gibao', 'Gibão de couro'], ['cor_malha', 'Cota de malha'], ['cor_sentinela', 'Peitoral da Sentinela'], ['cor_placas', 'Armadura de placas']],
+  capa: [['cap_curta', 'Capa curta'], ['cap_constante', 'Manto do Constante'], ['cap_fenix', 'Capa da Fênix'], ['cap_mestre', 'Capa da Bigorna']],
+  arma: [['arm_martelo', 'Martelo de aprendiz'], ['arm_cajado', 'Cajado do Erudito'], ['arm_lamina', 'Lâmina do Foco'], ['arm_martelo_juiz', 'Martelo do Juiz']],
+  amuleto: [['amu_ampulheta', 'Ampulheta quebrada'], ['amu_calma', 'Pedra da calma'], ['amu_equilibrio', 'Amuleto do equilíbrio']],
+  moldura: [['mol_bronze', 'Bronze'], ['mol_ferro', 'Ferro'], ['mol_aco', 'Aço'], ['mol_runas', 'Rúnica'], ['mol_chamas', 'Chamas'], ['mol_66', '66 dias']],
+};
+const SLOT_LABEL = { cabeca: 'Cabeça', corpo: 'Roupa', capa: 'Capa', arma: 'Arma', amuleto: 'Amuleto', moldura: 'Moldura' };
+const SHOULDER = new Set(['arm_martelo', 'arm_martelo_juiz']);
+const st = { corpo: 'f', pele: 2, cabelo: 4, corCabelo: 1, barba: 0, olhos: 'mel', corRoupa: 0,
+  equip: { corpo: 'cor_placas', arma: 'arm_martelo', moldura: 'mol_chamas' } };
+
+const DEC = {};
+for (const [k, v] of Object.entries(PX.layers)) {
+  const a = new Array(W * W).fill(null), s = v.p;
+  for (let i = 0; i < s.length; i += 5) a[parseInt(s.slice(i, i + 3), 36)] = [s[i + 3], +s[i + 4]];
+  DEC[k] = { a, head: v.h === 1 };
+}
+
+function palette() {
+  const p = {};
+  for (const [k, v] of Object.entries(PX.pal.fixed)) p[k] = v.map(hex);
+  p.S = PX.pal.skins[st.pele].map(hex); p.H = PX.pal.hairs[st.corCabelo].map(hex);
+  p.I = PX.pal.eyes[st.olhos].map(hex); p.C = PX.pal.outfits[st.corRoupa].map(hex);
+  const red = hex('#b3404a'); p.L = p.S.map((c) => c.map((x, i) => x * 0.55 + red[i] * 0.45));
+  return p;
+}
+
+// Mesma ordem de camadas do gerador (render3.py)
+function order(blink) {
+  const g = st.corpo, s = STYLES[st.cabelo], e = st.equip, out = [];
+  const cab = e.cabeca, cor = e.corpo, cap = e.capa, arm = e.arma, amu = e.amuleto;
+  if (cap) out.push(`${cap}_tras_${g}`);
+  const hideBack = ['cab_capuz', 'cab_elmo_ferro', 'cab_elmo_silencio'].includes(cab) && ['coque', 'volumoso'].includes(s);
+  if (!hideBack && cab !== 'cab_capuz') out.push(`cabelo_${s}_tras_${g}`);
+  if (SHOULDER.has(arm)) out.push(`${arm}_tras_${g}`);
+  out.push(`pescoco_${g}`, `corpo_${g}`);
+  if (arm && !SHOULDER.has(arm)) out.push(`${arm}_tras_${g}`);
+  out.push(SHOULDER.has(arm) ? `braco_ombro_${g}` : `braco_${g}`);
+  if (cor && cor !== 'cor_tunica') out.push(`${cor}_${g}`);
+  if (amu) out.push(`${amu}_${g}`);
+  if (cap) out.push(`${cap}_${g}`);
+  if (SHOULDER.has(arm)) out.push(`antebraco_ombro_${g}`, `${arm}_${g}`, `mao_ombro_${g}`);
+  out.push(`cabeca_${g}`, blink ? `rosto_${g}_piscar` : `rosto_${g}`);
+  if (st.barba) out.push(`barba_${st.barba}_${g}`);
+  if (cab !== 'cab_capuz') out.push(`cabelo_${s}_${g}`);
+  if (cab) out.push(`${cab}_${g}`);
+  return out.filter((n) => DEC[n]);
+}
+
+function compose(list, pal, headDy) {
+  const rgb = new Float32Array(W * W * 3), on = new Uint8Array(W * W), emis = [];
+  for (const n of list) {
+    const { a: L, head } = DEC[n], dy = head ? headDy : 0, inL = new Uint8Array(W * W);
+    for (let i = 0; i < W * W; i++) if (L[i]) { const y = ((i / W) | 0) + dy; if (y >= 0 && y < W) inL[y * W + (i % W)] = 1; }
+    for (let i = 0; i < W * W; i++) {
+      const c = L[i]; if (!c) continue;
+      const x = i % W, y = ((i / W) | 0) + dy; if (y < 0 || y >= W) continue;
+      const j = y * W + x; let lvl = c[1];
+      for (const [ddx, ddy] of [[0, 1], [-1, 0], [1, 0]]) {
+        const xx = x + ddx, yy = y + ddy;
+        if (xx >= 0 && xx < W && yy < W && !inL[yy * W + xx] && on[yy * W + xx]) { lvl = Math.max(0, lvl - 1); break; }
+      }
+      const col = pal[c[0]][lvl];
+      rgb[j * 3] = col[0]; rgb[j * 3 + 1] = col[1]; rgb[j * 3 + 2] = col[2]; on[j] = 1;
+      emis[j] = (c[0] === 'O' || c[0] === 'T') && lvl >= 3 ? col : null;
+    }
+  }
+  const out = new Uint8ClampedArray(W * W * 4), glow = new Uint8ClampedArray(W * W * 4);
+  const ink = hex('#070b12'), cyan = hex('#39d5d0'), ember = hex('#ff7138');
+  const filled = (x, y) => x >= 0 && x < W && y >= 0 && y < W && on[y * W + x];
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const j = y * W + x;
+    if (on[j]) {
+      let c = [rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]];
+      if (!filled(x + 1, y)) c = c.map((v, i) => v * 0.55 + cyan[i] * 0.45);
+      else if (!filled(x - 1, y) && y > 40) c = c.map((v, i) => v * 0.72 + ember[i] * 0.28);
+      out.set([c[0], c[1], c[2], 255], j * 4);
+      if (emis[j]) glow.set([...emis[j], 255], j * 4);
+    } else {
+      const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([a, b]) => filled(x + a, y + b));
+      if (nb.length) {
+        const m = [0, 0, 0];
+        for (const [a, b] of nb) { const k = (y + b) * W + x + a; for (let i = 0; i < 3; i++) m[i] += rgb[k * 3 + i] / nb.length; }
+        out.set([m[0] * 0.28 + ink[0] * 0.72, m[1] * 0.28 + ink[1] * 0.72, m[2] * 0.28 + ink[2] * 0.72, 255], j * 4);
+      }
+    }
+  }
+  return { out, glow };
+}
+
+// Molduras em pixel: anel com luz de cima à esquerda e detalhes de cada tipo
+const FRAMES = {
+  mol_bronze: { ramp: ['#3e2410', '#6e4420', '#a06a36', '#c88c4e', '#ecc08a'] },
+  mol_ferro: { ramp: ['#20262e', '#3a434e', '#5e6a78', '#8794a2', '#b9c4ce'], rivets: 4 },
+  mol_aco: { ramp: ['#2c3640', '#56626e', '#8a98a6', '#c2ccd6', '#f2f6fa'], double: true },
+  mol_runas: { ramp: ['#0e2440', '#1c4070', '#2e64a4', '#5c94d2', '#a6d0f6'], runes: true },
+  mol_chamas: { ramp: ['#5a1c08', '#9a3410', '#d85a20', '#ff8a3c', '#ffd08a'], flames: true },
+  mol_66: { ramp: ['#4a300a', '#7a5214', '#b07e26', '#deac44', '#fbe08a'], stars: true },
+};
+function portrait(cv, out, frameId) {
+  const c = cv.getContext('2d'), img = c.createImageData(WP, WP), d = img.data;
+  const R = 17.5, cx = 23.5, cy = 23.5, f = FRAMES[frameId] || FRAMES.mol_bronze, ramp = f.ramp.map(hex);
+  const bg = hex('#16202b'), bg2 = hex('#0b1016');
+  for (let y = 0; y < WP; y++) for (let x = 0; x < WP; x++) {
+    const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy), k = (y * WP + x) * 4;
+    if (r <= R) {
+      // recorte do rosto e do peito do personagem (região 34x34 a partir de x=31, y=0)
+      const sx = Math.round(31 + (x - (cx - R)) * (34 / (2 * R))), sy = Math.round((y - (cy - R)) * (34 / (2 * R)));
+      const j = (sy * W + sx) * 4;
+      const t = Math.min(1, r / R);
+      if (out[j + 3]) d.set([out[j], out[j + 1], out[j + 2], 255], k);
+      else d.set(bg.map((v, i) => v * (1 - t) + bg2[i] * t).concat(255), k);
+    }
+    const inRing = f.double ? (r > R && r <= R + 1.4) || (r > R + 2.4 && r <= R + 3.6) : r > R && r <= R + 3.2;
+    if (inRing) {
+      const lit = -(dx * 0.6 + dy * 0.7) / Math.max(r, 1);
+      const lv = Math.max(0, Math.min(4, Math.round(2 + lit * 1.8 + ((x + y) % 2 ? 0.2 : -0.2))));
+      d.set([...ramp[lv], 255], k);
+    } else if (r > R + (f.double ? 3.6 : 3.2) && r <= R + (f.double ? 4.6 : 4.2)) d.set([...ramp[0].map((v) => v * 0.4), 255], k);
+  }
+  const put = (x, y, col) => { if (x >= 0 && x < WP && y >= 0 && y < WP) d.set([...col, 255], (y * WP + x) * 4); };
+  const at = (ang, rr) => [Math.round(cx + Math.cos(ang) * rr), Math.round(cy + Math.sin(ang) * rr)];
+  if (f.rivets) for (let i = 0; i < 4; i++) { const [x, y] = at(Math.PI / 4 + i * Math.PI / 2, R + 1.6); put(x, y, ramp[4]); put(x + 1, y + 1, ramp[0]); }
+  if (f.runes) for (let i = 0; i < 8; i++) { const [x, y] = at(i * Math.PI / 4, R + 1.6); put(x, y, hex('#39d5d0')); put(x, y - 1, hex('#8ff0ea')); }
+  if (f.flames) for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; for (let s = 0; s < (i % 2 ? 2 : 3); s++) { const [x, y] = at(a, R + 4 + s); put(x, y, s ? hex('#ffb45e') : hex('#ff7138')); } }
+  if (f.stars) for (let i = 0; i < 6; i++) { const [x, y] = at(-Math.PI / 2 + i * Math.PI / 3, R + 4.4); put(x, y, hex('#fff0d6')); put(x - 1, y, hex('#deac44')); put(x + 1, y, hex('#deac44')); put(x, y - 1, hex('#deac44')); put(x, y + 1, hex('#deac44')); }
+  c.putImageData(img, 0, 0);
+}
+
+const cv = document.getElementById('char').getContext('2d'), gv = document.getElementById('charGlow').getContext('2d');
+let frame = 0, blinkUntil = 0, PAL = palette();
+function draw(force) {
+  const blink = performance.now() < blinkUntil, headDy = frame % 4 >= 2 ? 1 : 0;
+  const { out, glow } = compose(order(blink), PAL, headDy);
+  cv.putImageData(new ImageData(out, W, W), 0, 0);
+  gv.putImageData(new ImageData(glow, W, W), 0, 0);
+  if (force || frame % 4 === 0) {
+    const still = compose(order(false), PAL, 0).out;
+    for (const id of ['port', 'port2']) portrait(document.getElementById(id), still, st.equip.moldura);
+  }
+}
+setInterval(() => { frame++; if (Math.random() < 0.08) blinkUntil = performance.now() + 160; draw(); }, 280);
+
+function group(title, items, isOn, onPick, swatch) {
+  const g = document.createElement('div'); g.className = 'group';
+  const h = document.createElement('h2'); h.textContent = title; g.append(h);
+  const row = document.createElement('div'); row.className = 'row'; g.append(row);
+  for (const [val, label, color] of items) {
+    const b = document.createElement('button'); b.type = 'button';
+    if (swatch) { b.className = 'sw'; b.title = label; b.setAttribute('aria-label', label); const s = document.createElement('span'); s.style.background = color; b.append(s); }
+    else b.textContent = label;
+    b.setAttribute('aria-pressed', isOn(val));
+    b.onclick = () => { onPick(val); PAL = palette(); build(); draw(true); };
+    row.append(b);
+  }
+  return g;
+}
+function build() {
+  const root = document.getElementById('groups'); root.innerHTML = '';
+  const set = (k) => (v) => { st[k] = v; };
+  root.append(
+    group('Corpo', [['f', 'Mulher'], ['m', 'Homem']], (v) => st.corpo === v, set('corpo')),
+    group('Pele', PX.pal.skins.map((r, i) => [i, `Tom ${i + 1}`, r[3]]), (v) => st.pele === v, set('pele'), true),
+    group('Cabelo', STYLE_LABEL.map((l, i) => [i, l]), (v) => st.cabelo === v, set('cabelo')),
+    group('Cor do cabelo', PX.pal.hairs.map((r, i) => [i, PX.hairNames[i], r[3]]), (v) => st.corCabelo === v, set('corCabelo'), true),
+    group('Barba', [[0, 'Sem barba'], [1, 'Por fazer'], [2, 'Cheia']], (v) => st.barba === v, set('barba')),
+    group('Olhos', Object.entries(PX.pal.eyes).map(([k, r]) => [k, k, r[3]]), (v) => st.olhos === v, set('olhos'), true),
+    group('Cor da roupa', PX.pal.outfits.map((r, i) => [i, PX.outfitNames[i], r[3]]), (v) => st.corRoupa === v, set('corRoupa'), true),
+  );
+  for (const [slot, list] of Object.entries(ITEMS)) {
+    const opts = (slot === 'moldura' || slot === 'corpo' ? [] : [[null, 'Nenhum']]).concat(list);
+    root.append(group(SLOT_LABEL[slot], opts, (v) => (st.equip[slot] ?? null) === v,
+      (v) => { if (v) st.equip[slot] = v; else delete st.equip[slot]; }));
+  }
+}
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+document.getElementById('rand').onclick = () => {
+  Object.assign(st, { corpo: pick(['f', 'm']), pele: pick([0, 1, 2, 3, 4, 5]), cabelo: pick([0, 1, 2, 3, 4, 5, 6, 7]), corCabelo: pick([0, 1, 2, 3, 4, 5, 6, 7]),
+    olhos: pick(Object.keys(PX.pal.eyes)), corRoupa: pick([0, 1, 2, 3, 4, 5]) });
+  st.barba = st.corpo === 'm' ? pick([0, 1, 2]) : 0;
+  st.equip = {};
+  for (const [slot, list] of Object.entries(ITEMS)) if (slot === 'moldura' || slot === 'corpo' || Math.random() < 0.6) st.equip[slot] = pick(list)[0];
+  PAL = palette(); build(); draw(true);
+};
+build(); draw(true);
+</script>
