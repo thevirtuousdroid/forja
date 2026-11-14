@@ -2,16 +2,19 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Attribute, LedgerAttrRow } from '../lib/types';
-import { ATTRIBUTES, ATTRIBUTE_KEYS, attributeProgress } from '../lib/game';
+import { ATTRIBUTES, attributeProgress, attributesFor } from '../lib/game';
 import { addDays, formatDay } from '../lib/dates';
 import { BackButton, Skeleton } from '../components/ui';
+import { Link } from 'react-router-dom';
 
-/** Pentágono com o nível de cada atributo. */
-function Radar({ levels }: { levels: Record<Attribute, number> }) {
-  const max = Math.max(5, ...Object.values(levels));
+/** Pentágono (ou hexágono, com o Sagrado) com o nível de cada atributo. */
+function Radar({ levels, keys }: { levels: Record<Attribute, number>; keys: Attribute[] }) {
+  const ATTRIBUTE_KEYS = keys;
+  const step = 360 / keys.length;
+  const max = Math.max(5, ...keys.map((a) => levels[a]));
   const cx = 110, cy = 104, R = 76;
   const pt = (k: number, r: number) => {
-    const a = (-90 + k * 72) * (Math.PI / 180);
+    const a = (-90 + k * step) * (Math.PI / 180);
     return [cx + Math.cos(a) * r, cy + Math.sin(a) * r] as const;
   };
   const ring = (f: number) => ATTRIBUTE_KEYS.map((_, k) => pt(k, R * f).join(',')).join(' ');
@@ -28,7 +31,7 @@ function Radar({ levels }: { levels: Record<Attribute, number> }) {
         const [x, y] = pt(k, R + 12);
         const anchor = x > cx + 5 ? 'start' : x < cx - 5 ? 'end' : 'middle';
         return (
-          <text key={a} x={x} y={k === 0 ? y - 6 : y} textAnchor={anchor} dominantBaseline="middle">
+          <text key={a} x={x} y={k === 0 ? y - 6 : Math.abs(x - cx) < 5 ? y + 6 : y} textAnchor={anchor} dominantBaseline="middle">
             <tspan fill={ATTRIBUTES[a].color} fontWeight="700">{levels[a]}</tspan> {ATTRIBUTES[a].label}
           </text>
         );
@@ -38,7 +41,7 @@ function Radar({ levels }: { levels: Record<Attribute, number> }) {
 }
 
 export function AttributesScreen() {
-  const { stats, habits, today } = useApp();
+  const { stats, habits, today, profile } = useApp();
   const [rows, setRows] = useState<LedgerAttrRow[] | null>(null);
   const todayStr = today?.today;
 
@@ -49,20 +52,32 @@ export function AttributesScreen() {
 
   if (!stats || !todayStr) return <div className="screen"><BackButton to="/personagem" /><Skeleton height={260} /></div>;
 
-  const levels = Object.fromEntries(ATTRIBUTE_KEYS.map((a) => [a, attributeProgress(stats[a]).level])) as Record<Attribute, number>;
+  const keys = attributesFor(profile?.sagrado || (stats.sagrado ?? 0) > 0);
+  const ATTRIBUTE_KEYS = keys;
+  const levels = Object.fromEntries(keys.map((a) => [a, attributeProgress(stats[a] ?? 0).level])) as Record<Attribute, number>;
   const days = Array.from({ length: 14 }, (_, i) => addDays(todayStr, i - 13));
-  const perDay = (a: Attribute) => days.map((d) => (rows ?? []).filter((r) => r.day === d).reduce((n, r) => n + r[a], 0));
+  const perDay = (a: Attribute) => days.map((d) => (rows ?? []).filter((r) => r.day === d).reduce((n, r) => n + (r[a] ?? 0), 0));
   const active = habits.filter((h) => h.active);
 
   return (
     <div className="screen">
       <BackButton to="/personagem" />
       <h1>Atributos</h1>
-      <div className="card center"><Radar levels={levels} /></div>
+      <div className="card center"><Radar levels={levels} keys={keys} /></div>
       <p className="small faint">Cada missão fortalece dois atributos: 70% do XP vai para o principal e 30% para o secundário.</p>
 
+      {!profile?.sagrado && (
+        <Link to="/sagrado" className="card row between sagrado-invite">
+          <span className="stack tight">
+            <strong>Caminho Sagrado</strong>
+            <span className="small muted">Devocional, leitura bíblica, meditação na Palavra, louvor e gratidão a Deus, com um atributo próprio: o Sagrado.</span>
+          </span>
+          <span aria-hidden className="faint">›</span>
+        </Link>
+      )}
+
       {ATTRIBUTE_KEYS.map((a) => {
-        const p = attributeProgress(stats[a]);
+        const p = attributeProgress(stats[a] ?? 0);
         const series = perDay(a);
         const week = series.slice(7).reduce((n, v) => n + v, 0);
         const peak = Math.max(1, ...series);
@@ -76,7 +91,7 @@ export function AttributesScreen() {
             <span className="small muted">{ATTRIBUTES[a].hint}</span>
             <div className="bar thin"><span style={{ width: `${p.ratio * 100}%`, background: ATTRIBUTES[a].color }} /></div>
             <div className="row between small faint num">
-              <span>{stats[a].toLocaleString('pt-BR')} XP</span>
+              <span>{(stats[a] ?? 0).toLocaleString('pt-BR')} XP</span>
               <span>+{week} nos últimos 7 dias</span>
             </div>
             {rows === null ? <Skeleton height={40} /> : (

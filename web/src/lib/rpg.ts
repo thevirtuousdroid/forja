@@ -112,6 +112,7 @@ export const ACHIEVEMENT_CATEGORIES: { id: AchievementCategory; label: string }[
   { id: 'social', label: 'Social' },
   { id: 'temporadas', label: 'Temporadas' },
   { id: 'ferramentas', label: 'Ferramentas' },
+  { id: 'sagrado', label: 'Caminho Sagrado' },
 ];
 
 // ── Modos ───────────────────────────────────────────────────────────────────

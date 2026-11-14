@@ -44,8 +44,8 @@ function Detail({ a, onClose }: { a: Achievement; onClose: () => void }) {
 }
 
 export function AchievementsScreen() {
-  const { events } = useApp();
-  const [list, setList] = useState<Achievement[] | null>(null);
+  const { events, profile } = useApp();
+  const [all, setList] = useState<Achievement[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Achievement | null>(null);
 
@@ -56,7 +56,10 @@ export function AchievementsScreen() {
   useEffect(load, [events.length]);
 
   if (error) return <div className="screen"><BackButton to="/personagem" /><ErrorState message={error} onRetry={load} /></div>;
-  if (!list) return <div className="screen"><BackButton to="/personagem" /><Skeleton height={60} /><Skeleton height={300} /></div>;
+  if (!all) return <div className="screen"><BackButton to="/personagem" /><Skeleton height={60} /><Skeleton height={300} /></div>;
+
+  // Conquistas do Caminho Sagrado só aparecem para quem ativou (ou já ganhou alguma)
+  const list = all.filter((a) => a.category !== 'sagrado' || profile?.sagrado || a.unlocked_at);
 
   const done = list.filter((a) => a.unlocked_at).length;
   const xp = list.filter((a) => a.unlocked_at).reduce((n, a) => n + a.xp, 0);

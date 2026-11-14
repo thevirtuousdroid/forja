@@ -33,6 +33,7 @@ import {
 } from './screens/Tools';
 import { FocusScreen, MeditationScreen } from './screens/Focus';
 import { MentorScreen, PlanScreen, ReportScreen } from './screens/Mentor';
+import { SagradoScreen } from './screens/Sagrado';
 import { PushSettingsScreen } from './screens/Push';
 
 // Convites por link (/amigo/CODIGO, /grupo/CODIGO) abertos antes da avaliação inicial ficam guardados para depois
@@ -176,6 +177,7 @@ export function App() {
         <Route path="/ferramentas/diario" element={<DiaryScreen />} />
         <Route path="/ferramentas/habitos" element={<HabitTrackerScreen />} />
         <Route path="/mentor" element={<MentorScreen />} />
+        <Route path="/sagrado" element={<SagradoScreen />} />
         <Route path="/mentor/relatorio" element={<ReportScreen />} />
         <Route path="/mentor/relatorio/:week" element={<ReportScreen />} />
         <Route path="/resultado" element={<ResultScreen />} />

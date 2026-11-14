@@ -4,7 +4,7 @@ import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
 import type { Challenge, ChallengeKind, ChallengeMetric, Dimension, FriendCard, GroupSummary, NewChallenge } from '../lib/types';
 import { CHALLENGE_KINDS, METRICS, metricLabel, metricUnit, plural, collectiveLeft } from '../lib/social';
-import { DIMENSIONS, DIMENSION_KEYS } from '../lib/game';
+import { DIMENSIONS, areasFor } from '../lib/game';
 import { formatDay } from '../lib/dates';
 import { PersonAvatar, Sheet } from '../components/Social';
 import { BackButton, Empty, ErrorState, Skeleton } from '../components/ui';
@@ -54,6 +54,7 @@ const DURATIONS = [3, 5, 7, 14, 21, 30];
 export function NewChallengeScreen() {
   const [params] = useSearchParams();
   const nav = useNavigate();
+  const { profile } = useApp();
   const { toast } = useFeedback();
   const [friends, setFriends] = useState<FriendCard[] | null>(null);
   const [groups, setGroups] = useState<GroupSummary[] | null>(null);
@@ -130,7 +131,7 @@ export function NewChallengeScreen() {
         </div>
         {metric === 'area' && (
           <div className="chips" role="group" aria-label="Área">
-            {DIMENSION_KEYS.map((d) => <button key={d} className="chip" aria-pressed={dimension === d} onClick={() => setDimension(d)}>{DIMENSIONS[d].short}</button>)}
+            {areasFor(profile?.sagrado).map((d) => <button key={d} className="chip" aria-pressed={dimension === d} onClick={() => setDimension(d)}>{DIMENSIONS[d].short}</button>)}
           </div>
         )}
       </section>

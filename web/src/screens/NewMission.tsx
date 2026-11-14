@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, friendlyError } from '../lib/api';
 import { useApp } from '../lib/AppData';
-import { DIMENSIONS, DIMENSION_KEYS } from '../lib/game';
+import { DIMENSIONS, areasFor } from '../lib/game';
 import { BackButton } from '../components/ui';
 import { useFeedback } from '../components/Feedback';
 import type { Dimension } from '../lib/types';
@@ -53,7 +53,7 @@ export function NewMissionScreen() {
         <fieldset className="stack tight" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="small muted" style={{ marginBottom: 6 }}>Área</legend>
           <div className="choice-grid">
-            {DIMENSION_KEYS.map((d) => (
+            {areasFor(profile?.sagrado).map((d) => (
               <button type="button" key={d} className="choice" aria-pressed={dimension === d} onClick={() => setDimension(d)}>
                 {DIMENSIONS[d].short}
               </button>

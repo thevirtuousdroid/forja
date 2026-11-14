@@ -20,6 +20,8 @@ const MESSAGES: Record<string, string> = {
   fuso_invalido: 'Fuso horário inválido.',
   meta_invalida: 'A meta diária precisa ficar entre 1 e 10 missões.',
   aparencia_invalida: 'Alguma escolha de aparência não é válida. Tente de novo.',
+  escolha_uma_pratica: 'Escolha pelo menos uma prática para começar.',
+  programa_nao_iniciado: 'Responda o questionário inicial antes de ativar o Caminho Sagrado.',
   item_nao_disponivel: 'Esse item ainda não foi desbloqueado.',
   titulo_nao_disponivel: 'Esse título ainda não foi desbloqueado.',
   chefe_nao_encontrado: 'Esse chefe não foi encontrado.',

@@ -21,6 +21,7 @@
   --attr-vitalidade: #4fd18b;
   --attr-conhecimento: #b08cff;
   --attr-determinacao: #ff6b8a;
+  --attr-sagrado: #f3dc9a;
   --r-comum: #b8c4cc;
   --r-raro: #5fb4ff;
   --r-epico: #b08cff;
@@ -507,3 +508,17 @@ h2::before { content: ''; width: 14px; height: 2px; background: var(--accent); b
 .auth-hero img { clip-path: polygon(33.6% 6.2%, 66.4% 6.2%, 93.8% 33.6%, 93.8% 66.4%, 66.4% 93.8%, 33.6% 93.8%, 6.2% 66.4%, 6.2% 33.6%); }
 .auth-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--tech); margin-top: 6px; }
 .auth-word { font-family: var(--font-display); font-size: 40px; letter-spacing: .32em; margin: 0 0 0 .32em; line-height: 1.1; }
+
+/* Caminho Sagrado */
+.tag-mono { font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--attr-sagrado); }
+.sagrado-hero { border-color: color-mix(in srgb, var(--attr-sagrado) 45%, var(--line)); background:
+  radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--attr-sagrado) 16%, transparent), transparent 60%), var(--surface); }
+.sagrado-hero h1 { font-size: 24px; text-wrap: balance; }
+.practice { display: flex; gap: 12px; align-items: flex-start; width: 100%; color: inherit; font: inherit; cursor: pointer; min-height: 44px; }
+.practice:disabled { cursor: default; opacity: 1; }
+.practice.on { border-color: color-mix(in srgb, var(--attr-sagrado) 60%, var(--line)); }
+.practice-check { flex: none; width: 24px; height: 24px; display: grid; place-items: center; margin-top: 1px; color: #1a1406; font-weight: 700;
+  border: 1.5px solid var(--line-hi); clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.practice.on .practice-check { background: var(--attr-sagrado); border-color: var(--attr-sagrado); }
+.sagrado-invite { color: inherit; text-decoration: none; border-color: color-mix(in srgb, var(--attr-sagrado) 40%, var(--line)); }
+.sagrado-mark { color: var(--attr-sagrado); font-size: 20px; line-height: 1; }

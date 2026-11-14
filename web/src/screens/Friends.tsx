@@ -6,7 +6,7 @@ import type { Attribute, CodeLookup, FriendProfile, Privacy, SocialInfo, SocialN
 import {
   CHEERS, DIRECT_CHEERS, PRIVACY_OPTIONS, copyText, friendLink, notificationText, plural, prettyCode, relativeTime, shareOrCopy,
 } from '../lib/social';
-import { ATTRIBUTES, ATTRIBUTE_KEYS } from '../lib/game';
+import { ATTRIBUTES, ATTRIBUTE_KEYS, attributesFor } from '../lib/game';
 import { formatDay } from '../lib/dates';
 import { Badge } from '../components/Badge';
 import { LeagueBadge, PersonAvatar, PersonRow, Sheet, Toggle } from '../components/Social';
@@ -251,8 +251,11 @@ export function FriendProfileScreen() {
     }
   }
 
+  // O Sagrado só entra na comparação quando um dos dois ativou o Caminho Sagrado
+  const attrKeys = p.attributes && p.my_attributes
+    ? attributesFor('sagrado' in p.attributes || 'sagrado' in p.my_attributes) : ATTRIBUTE_KEYS;
   const attrMax = p.attributes && p.my_attributes
-    ? Math.max(1, ...ATTRIBUTE_KEYS.map((k) => Math.max(p.attributes![k], p.my_attributes![k]))) : 1;
+    ? Math.max(1, ...attrKeys.map((k) => Math.max(p.attributes![k] ?? 0, p.my_attributes![k] ?? 0))) : 1;
 
   return (
     <div className="screen">
@@ -301,8 +304,8 @@ export function FriendProfileScreen() {
         <div className="card stack">
           <div className="row between small"><strong>{name}</strong><h3>Atributos</h3><strong>Você</strong></div>
           <div className="compare">
-            {ATTRIBUTE_KEYS.map((k: Attribute) => (
-              <CompareRow key={k} label={ATTRIBUTES[k].label} theirs={p.attributes![k]} mine={p.my_attributes![k]} max={attrMax} />
+            {attrKeys.map((k: Attribute) => (
+              <CompareRow key={k} label={ATTRIBUTES[k].label} theirs={p.attributes![k] ?? 0} mine={p.my_attributes![k] ?? 0} max={attrMax} />
             ))}
           </div>
           <span className="small faint">Nível de cada atributo. Cada um evolui no seu ritmo.</span>

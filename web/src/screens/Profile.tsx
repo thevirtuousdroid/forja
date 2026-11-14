@@ -125,6 +125,9 @@ export function ProfileScreen() {
         <Link to="/social/privacidade" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Privacidade e código de amizade</span><span className="faint">›</span>
         </Link>
+        <Link to="/sagrado" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span>Caminho Sagrado: <strong>{profile.sagrado ? 'ativo' : 'desligado'}</strong></span><span className="faint">›</span>
+        </Link>
         <Link to="/mentor" className="row between" style={{ color: 'inherit', textDecoration: 'none' }}>
           <span>Mentor: <strong>{profile.mentor_enabled ? 'ligado' : 'desligado'}</strong></span><span className="faint">›</span>
         </Link>

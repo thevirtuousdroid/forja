@@ -14,6 +14,7 @@ import { fmtMinutes } from '../lib/tools';
 import { useFeedback } from '../components/Feedback';
 import { friendlyError } from '../lib/api';
 import { PushPrompt } from './Push';
+import { SagradoPrompt } from './Sagrado';
 import { ReassessCard } from './Reassess';
 
 export function sortMissions(ms: Mission[]) {
@@ -183,6 +184,7 @@ export function HomeScreen() {
       )}
 
       <PushPrompt />
+      <SagradoPrompt />
       <ReassessCard day={today.day} />
 
       {(today.mentor_open ?? 0) > 0 && (

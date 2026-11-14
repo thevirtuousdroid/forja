@@ -6,7 +6,7 @@ import type {
   HabitTrack, Journey, LedgerAttrRow, LedgerEntry, Lite, MentorInfo, Mission, Mode, ModeInfo, NewChallenge, NotifyInfo,
   NotifySettings, OwnedItem, PlanInfo,
   PostKind, Privacy, Profile, ProgressionEvent, Ranking, RankingCategory, SeasonInfo, SocialInfo, SocialNotification, TodayInfo,
-  ToolDay, ToolHistory, ToolId, ToolSettings, ToolsOverview, WeeklyReport,
+  ToolDay, ToolHistory, ToolId, ToolSettings, ToolsOverview, WeeklyReport, SagradoState,
 } from './types';
 
 export { friendlyError, isPremiumError } from './errors';
@@ -73,7 +73,7 @@ export const api = {
     rows<LedgerEntry[]>(supabase.from('xp_ledger').select('*').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(limit)),
   ledgerSince: (day: string) =>
     rows<LedgerAttrRow[]>(
-      supabase.from('xp_ledger').select('day,disciplina,foco,vitalidade,conhecimento,determinacao').gte('day', day),
+      supabase.from('xp_ledger').select('day,disciplina,foco,vitalidade,conhecimento,determinacao,sagrado').gte('day', day),
     ),
   missionNames: (ids: string[]) =>
     ids.length === 0
@@ -181,6 +181,9 @@ export const api = {
   // ── Mentor ──
   mentor: () => rpc<MentorInfo>('get_mentor'),
   setMentor: (enabled: boolean) => rpc<{ enabled: boolean }>('set_mentor', { p_enabled: enabled }),
+  getSagrado: () => rpc<SagradoState>('get_sagrado'),
+  setSagrado: (enabled: boolean, practices: string[]) =>
+    rpc<SagradoState>('set_sagrado', { p_enabled: enabled, p_practices: practices }),
   respondSuggestion: (id: string, accept: boolean) =>
     rpc<{ status: 'aceita' | 'recusada'; kind: string; link?: string | null }>('respond_suggestion', { p_id: id, p_accept: accept }),
   report: (week: string | null) => rpc<WeeklyReport>('get_report', { p_week: week }),

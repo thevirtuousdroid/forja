@@ -1,4 +1,4 @@
-import type { Attribute, Dimension, MissionKind, Period, Unit } from './types';
+import type { Attribute, Dimension, CoreDimension, MissionKind, Period, Unit } from './types';
 
 /** Espelha public.xp_for_level do banco (somente para exibição; o servidor é a autoridade). */
 export function xpForLevel(level: number): number {
@@ -47,8 +47,12 @@ export const DIMENSIONS: Record<Dimension, { label: string; short: string }> = {
   produtividade: { label: 'Disciplina e produtividade', short: 'Produtividade' },
   digital: { label: 'Saúde digital', short: 'Digital' },
   autocuidado: { label: 'Autocuidado e rotina', short: 'Autocuidado' },
+  espiritual: { label: 'Vida espiritual', short: 'Espiritual' },
 };
-export const DIMENSION_KEYS = Object.keys(DIMENSIONS) as Dimension[];
+/** As 6 áreas do questionário. A vida espiritual é opcional e fica de fora (Caminho Sagrado). */
+export const DIMENSION_KEYS: CoreDimension[] = ['fisica', 'mental', 'intelectual', 'produtividade', 'digital', 'autocuidado'];
+/** Áreas em que a pessoa pode criar missões e desafios. */
+export const areasFor = (sagrado?: boolean): Dimension[] => (sagrado ? [...DIMENSION_KEYS, 'espiritual'] : [...DIMENSION_KEYS]);
 
 export const ATTRIBUTES: Record<Attribute, { label: string; hint: string; color: string }> = {
   disciplina: { label: 'Disciplina', hint: 'Consistência na execução dos compromissos', color: 'var(--attr-disciplina)' },
@@ -56,8 +60,12 @@ export const ATTRIBUTES: Record<Attribute, { label: string; hint: string; color:
   vitalidade: { label: 'Vitalidade', hint: 'Cuidado com o corpo e recuperação', color: 'var(--attr-vitalidade)' },
   conhecimento: { label: 'Conhecimento', hint: 'Investimento em aprendizado', color: 'var(--attr-conhecimento)' },
   determinacao: { label: 'Determinação', hint: 'Persistência diante das dificuldades', color: 'var(--attr-determinacao)' },
+  sagrado: { label: 'Sagrado', hint: 'Dedicação entregue a Deus', color: 'var(--attr-sagrado)' },
 };
-export const ATTRIBUTE_KEYS = Object.keys(ATTRIBUTES) as Attribute[];
+/** Os 5 atributos de todo mundo. */
+export const ATTRIBUTE_KEYS: Attribute[] = ['disciplina', 'foco', 'vitalidade', 'conhecimento', 'determinacao'];
+/** Atributos de uma pessoa: o Sagrado aparece para quem ativou o Caminho Sagrado (ou já tem pontos nele). */
+export const attributesFor = (sagrado?: boolean): Attribute[] => (sagrado ? [...ATTRIBUTE_KEYS, 'sagrado'] : ATTRIBUTE_KEYS);
 
 export const KIND_LABEL: Record<MissionKind, string> = {
   diaria: 'Diária', semanal: 'Semanal', especial: 'Especial', personalizada: 'Personalizada', surpresa: 'Surpresa',
@@ -91,10 +99,10 @@ export function emblemTier(level: number): 0 | 1 | 2 | 3 | 4 {
 
 /** Perfil de referência (não é diagnóstico): arquétipo pela dimensão mais forte. */
 const ARCHETYPES: Record<Dimension, string> = {
-  fisica: 'Guardião', mental: 'Sereno', intelectual: 'Erudito', produtividade: 'Estrategista', digital: 'Atento', autocuidado: 'Cultivador',
+  fisica: 'Guardião', mental: 'Sereno', intelectual: 'Erudito', produtividade: 'Estrategista', digital: 'Atento', autocuidado: 'Cultivador', espiritual: 'Consagrado',
 };
 
-export function referenceProfile(scores: Record<Dimension, number>) {
+export function referenceProfile(scores: Record<CoreDimension, number>) {
   const sorted = [...DIMENSION_KEYS].sort((a, b) => scores[b] - scores[a]);
   const strongest = sorted[0];
   const weakest = sorted[sorted.length - 1];

@@ -1,5 +1,7 @@
-export type Dimension = 'fisica' | 'mental' | 'intelectual' | 'produtividade' | 'digital' | 'autocuidado';
-export type Attribute = 'disciplina' | 'foco' | 'vitalidade' | 'conhecimento' | 'determinacao';
+export type Dimension = 'fisica' | 'mental' | 'intelectual' | 'produtividade' | 'digital' | 'autocuidado' | 'espiritual';
+/** As 6 áreas do questionário (a vida espiritual é opcional e não entra na avaliação). */
+export type CoreDimension = Exclude<Dimension, 'espiritual'>;
+export type Attribute = 'disciplina' | 'foco' | 'vitalidade' | 'conhecimento' | 'determinacao' | 'sagrado';
 export type MissionKind = 'diaria' | 'semanal' | 'especial' | 'personalizada' | 'surpresa';
 export type MissionStatus = 'pendente' | 'concluida' | 'expirada';
 export type Period = 'manha' | 'tarde' | 'noite' | 'qualquer';
@@ -34,6 +36,8 @@ export interface Profile {
   privacy?: Partial<Privacy>;
   tool_settings?: Partial<ToolSettings>;
   mentor_enabled?: boolean;
+  /** Caminho Sagrado ativado */
+  sagrado?: boolean;
 }
 
 export interface CharacterStats {
@@ -45,6 +49,8 @@ export interface CharacterStats {
   vitalidade: number;
   conhecimento: number;
   determinacao: number;
+  /** Pode faltar enquanto a migração 0007 não foi aplicada */
+  sagrado: number;
 }
 
 export interface Habit {
@@ -92,7 +98,7 @@ export interface Mission {
 export interface Assessment {
   id: string;
   answers: Record<string, unknown>;
-  scores: Record<Dimension, number>;
+  scores: Record<CoreDimension, number>;
   priorities: Dimension[];
   created_at: string;
 }
@@ -144,6 +150,7 @@ export interface LedgerAttrRow {
   vitalidade: number;
   conhecimento: number;
   determinacao: number;
+  sagrado: number;
 }
 
 export interface ProgressionEvent {
@@ -230,7 +237,7 @@ export interface RewardRef {
 
 export type AchievementCategory =
   | 'missoes' | 'sequencia' | 'programa' | 'nivel' | 'atributos' | 'habitos' | 'chefes' | 'modos'
-  | 'social' | 'temporadas' | 'ferramentas';
+  | 'social' | 'temporadas' | 'ferramentas' | 'sagrado';
 
 export interface AchievementDef {
   id: string;
@@ -413,8 +420,8 @@ export interface FriendProfile {
   since: string | null;
   groups_in_common: { id: string; name: string }[];
   privacy: { nivel: boolean; sequencia: boolean; conquistas: boolean; atributos: boolean };
-  attributes?: Record<Attribute, number>;
-  my_attributes?: Record<Attribute, number>;
+  attributes?: Partial<Record<Attribute, number>>;
+  my_attributes?: Partial<Record<Attribute, number>>;
   achievements?: { id: string; name: string; rarity: Rarity; category: AchievementCategory; unlocked_at: string }[];
   bosses?: number;
   my_bosses?: number;
@@ -581,4 +588,26 @@ export interface NotifyInfo {
   public_key: string | null;
   settings: NotifySettings;
   devices: PushDevice[];
+}
+
+// ── Caminho Sagrado ─────────────────────────────────────────────────────────
+
+export interface SagradoPractice {
+  id: string;
+  name: string;
+  description: string;
+  unit: Unit;
+  base_value: number;
+  active: boolean;
+  target: number | null;
+}
+
+export interface SagradoState {
+  enabled: boolean;
+  practices: SagradoPractice[];
+  xp: number;
+  level: number;
+  days: number;
+  today_done: number;
+  today_total: number;
 }

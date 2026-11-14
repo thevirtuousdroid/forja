@@ -82,3 +82,15 @@ describe('perfil de referência e erros', () => {
     expect(friendlyError(new Error('coisa estranha'))).toMatch(/Algo deu errado/);
   });
 });
+
+describe('Caminho Sagrado', () => {
+  it('o Sagrado e a vida espiritual só aparecem para quem ativou', async () => {
+    const { attributesFor, areasFor, ATTRIBUTE_KEYS, DIMENSION_KEYS } = await import('./game');
+    expect(ATTRIBUTE_KEYS).toHaveLength(5);
+    expect(attributesFor(false)).not.toContain('sagrado');
+    expect(attributesFor(true)).toEqual([...ATTRIBUTE_KEYS, 'sagrado']);
+    expect(DIMENSION_KEYS).not.toContain('espiritual');
+    expect(areasFor(true)).toContain('espiritual');
+    expect(areasFor(undefined)).toHaveLength(6);
+  });
+});
